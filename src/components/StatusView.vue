@@ -1,171 +1,159 @@
 <template>
-  <div class="status-view">
-    <mdui-card variant="outlined">
-      <div style="padding: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <div>
-            <h3>仓库状态</h3>
-            <p v-if="repoPath" style="color: #666; font-size: 14px; margin-top: 4px;">{{ repoPath }}</p>
+  <div class="status-view-sourcetree">
+    <div v-if="loading" class="loading-container">
+      <mdui-circular-progress></mdui-circular-progress>
+    </div>
+
+    <div v-else-if="!repoPath" class="empty-state">
+      <mdui-icon name="folder_open" style="font-size: 64px; color: #bdbdbd;"></mdui-icon>
+      <p style="margin-top: 16px; font-size: 16px; color: #757575;">请先选择一个 Git 仓库</p>
+      <mdui-button variant="filled" @click="goToRepoSelector" style="margin-top: 16px;">
+        选择仓库
+      </mdui-button>
+    </div>
+
+    <div v-else class="split-pane-container">
+      <!-- 上部:文件列表区 -->
+      <div class="file-list-pane">
+        <!-- 当前分支和状态栏 -->
+        <div class="status-bar">
+          <div class="branch-info">
+            <mdui-icon name="account_tree" style="font-size: 18px; color: #1976d2;"></mdui-icon>
+            <strong>{{ status?.current || 'main' }}</strong>
+            <span v-if="status?.ahead" class="badge ahead">↑ {{ status.ahead }}</span>
+            <span v-if="status?.behind" class="badge behind">↓ {{ status.behind }}</span>
           </div>
-          <div style="display: flex; gap: 8px;">
-            <mdui-button variant="outlined" icon="stacks" @click="showStashDialog">
-              Stash
-            </mdui-button>
-            <mdui-button-icon icon="refresh" @click="loadStatus"></mdui-button-icon>
-          </div>
+          <mdui-chip v-if="isClean" style="background-color: #4caf50; color: white; height: 24px;">
+            <mdui-icon slot="icon" name="check_circle" style="font-size: 16px;"></mdui-icon>
+            干净
+          </mdui-chip>
         </div>
 
-        <div v-if="loading" style="text-align: center; padding: 32px;">
-          <mdui-circular-progress></mdui-circular-progress>
-        </div>
-
-        <div v-else-if="status">
-          <!-- 当前分支信息 -->
-          <mdui-card variant="filled" style="padding: 12px; margin-bottom: 16px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <strong style="font-size: 16px;">{{ status.current }}</strong>
-                <span v-if="status.ahead" style="margin-left: 12px; color: #4caf50;">
-                  ↑ {{ status.ahead }}
-                </span>
-                <span v-if="status.behind" style="margin-left: 8px; color: #ff9800;">
-                  ↓ {{ status.behind }}
-                </span>
+        <!-- 文件列表 -->
+        <div class="file-list-content">
+          <!-- 未暂存的更改 -->
+          <div class="file-section" v-if="unstagedFiles.length > 0">
+            <div class="section-header">
+              <div class="section-title">
+                <mdui-icon name="edit" style="font-size: 16px;"></mdui-icon>
+                <span>未暂存的更改</span>
+                <span class="count">({{ unstagedFiles.length }})</span>
               </div>
-              <mdui-chip v-if="isClean" style="background-color: #4caf50; color: white;">
-                <mdui-icon slot="icon" name="check_circle"></mdui-icon>
-                工作目录干净
-              </mdui-chip>
+              <div class="section-actions">
+                <mdui-button variant="text" icon="add" @click="stageAll" size="small">全部暂存</mdui-button>
+                <mdui-button variant="text" icon="undo" @click="discardAll" size="small">丢弃所有</mdui-button>
+              </div>
             </div>
-          </mdui-card>
-
-          <!-- 快速操作 -->
-          <div v-if="!isClean" style="display: flex; gap: 8px; margin-bottom: 16px;">
-            <mdui-button
-              variant="tonal"
-              icon="add"
-              @click="stageAll"
-              :disabled="!hasUnstagedChanges"
+            <div
+              v-for="file in unstagedFiles"
+              :key="'unstaged-' + file.path"
+              :class="['file-item', { selected: selectedFile?.path === file.path && selectedFile?.staged === false }]"
+              @click="selectFile(file, false)"
             >
-              暂存所有
-            </mdui-button>
-            <mdui-button
-              variant="text"
-              icon="undo"
-              @click="discardAll"
-              :disabled="!hasUnstagedChanges"
-            >
-              丢弃所有更改
-            </mdui-button>
-          </div>
-
-          <!-- 已暂存文件 -->
-          <div v-if="status.staged && status.staged.length > 0" style="margin-bottom: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <h4 style="margin: 0;">已暂存文件 ({{ status.staged.length }})</h4>
-              <mdui-button
-                variant="text"
-                icon="remove"
-                @click="unstageAll"
-              >
-                取消全部暂存
-              </mdui-button>
+              <mdui-icon :name="getFileIcon(file.status)" :style="{ color: getFileColor(file.status), fontSize: '18px' }"></mdui-icon>
+              <span class="file-path">{{ file.path }}</span>
+              <span class="file-status">{{ getFileStatusText(file.status) }}</span>
+              <div class="file-actions">
+                <mdui-button-icon icon="add" @click.stop="stageFile(file.path)" size="small" title="暂存"></mdui-button-icon>
+                <mdui-button-icon v-if="file.status === 'M'" icon="undo" @click.stop="discardFile(file.path)" size="small" title="丢弃"></mdui-button-icon>
+              </div>
             </div>
-            <mdui-list>
-              <mdui-list-item v-for="file in status.staged" :key="file">
-                <mdui-icon slot="icon" name="check_circle" style="color: #4caf50;"></mdui-icon>
-                <div style="flex: 1;">{{ file }}</div>
-                <mdui-button-icon
-                  slot="end-icon"
-                  icon="remove"
-                  @click="unstageFile(file)"
-                  title="取消暂存"
-                ></mdui-button-icon>
-              </mdui-list-item>
-            </mdui-list>
           </div>
 
-          <!-- 已修改文件 -->
-          <div v-if="status.modified && status.modified.length > 0" style="margin-bottom: 24px;">
-            <h4 style="margin-bottom: 8px;">已修改文件 ({{ status.modified.length }})</h4>
-            <mdui-list>
-              <mdui-list-item v-for="file in status.modified" :key="file">
-                <mdui-icon slot="icon" name="edit" style="color: #ff9800;"></mdui-icon>
-                <div style="flex: 1;">{{ file }}</div>
-                <div slot="end-icon" style="display: flex; gap: 4px;">
-                  <mdui-button-icon
-                    icon="add"
-                    @click="stageFile(file)"
-                    title="暂存"
-                  ></mdui-button-icon>
-                  <mdui-button-icon
-                    icon="undo"
-                    @click="discardFile(file)"
-                    title="丢弃更改"
-                  ></mdui-button-icon>
-                </div>
-              </mdui-list-item>
-            </mdui-list>
+          <!-- 已暂存的更改 -->
+          <div class="file-section" v-if="stagedFiles.length > 0">
+            <div class="section-header">
+              <div class="section-title">
+                <mdui-icon name="check_circle" style="font-size: 16px; color: #4caf50;"></mdui-icon>
+                <span>已暂存的更改</span>
+                <span class="count">({{ stagedFiles.length }})</span>
+              </div>
+              <div class="section-actions">
+                <mdui-button variant="text" icon="remove" @click="unstageAll" size="small">取消全部</mdui-button>
+              </div>
+            </div>
+            <div
+              v-for="file in stagedFiles"
+              :key="'staged-' + file"
+              :class="['file-item', { selected: selectedFile?.path === file && selectedFile?.staged === true }]"
+              @click="selectFile({ path: file, status: 'S' }, true)"
+            >
+              <mdui-icon name="check_circle" style="color: #4caf50; font-size: 18px;"></mdui-icon>
+              <span class="file-path">{{ file }}</span>
+              <span class="file-status">已暂存</span>
+              <div class="file-actions">
+                <mdui-button-icon icon="remove" @click.stop="unstageFile(file)" size="small" title="取消暂存"></mdui-button-icon>
+              </div>
+            </div>
           </div>
 
-          <!-- 未跟踪文件 -->
-          <div v-if="status.not_added && status.not_added.length > 0" style="margin-bottom: 24px;">
-            <h4 style="margin-bottom: 8px;">未跟踪文件 ({{ status.not_added.length }})</h4>
-            <mdui-list>
-              <mdui-list-item v-for="file in status.not_added" :key="file">
-                <mdui-icon slot="icon" name="note_add" style="color: #2196f3;"></mdui-icon>
-                <div style="flex: 1;">{{ file }}</div>
-                <mdui-button-icon
-                  slot="end-icon"
-                  icon="add"
-                  @click="stageFile(file)"
-                  title="暂存"
-                ></mdui-button-icon>
-              </mdui-list-item>
-            </mdui-list>
+          <!-- 无更改 -->
+          <div v-if="isClean" class="empty-file-list">
+            <mdui-icon name="check_circle" style="font-size: 48px; color: #4caf50;"></mdui-icon>
+            <p>工作目录干净,没有需要提交的更改</p>
           </div>
+        </div>
+      </div>
 
-          <!-- 提交区域 -->
-          <div v-if="status.staged && status.staged.length > 0" style="margin-top: 24px;">
-            <mdui-card variant="elevated" style="padding: 16px;">
-              <h4 style="margin-top: 0;">提交更改</h4>
-              <mdui-text-field
-                label="提交信息"
-                placeholder="描述你的更改..."
-                v-model="commitMessage"
-                style="width: 100%; margin-bottom: 12px;"
-                rows="3"
-              ></mdui-text-field>
+      <!-- 分隔条 -->
+      <div class="resizer"></div>
+
+      <!-- 下部:详情和提交区 -->
+      <div class="detail-pane">
+        <!-- 文件详情 -->
+        <div v-if="selectedFile" class="file-detail">
+          <div class="detail-header">
+            <div class="detail-title">
+              <mdui-icon name="description"></mdui-icon>
+              <span>{{ selectedFile.path }}</span>
+              <mdui-chip style="margin-left: 12px;">{{ getFileStatusText(selectedFile.status) }}</mdui-chip>
+            </div>
+          </div>
+          <div class="detail-content">
+            <div class="diff-placeholder">
+              <mdui-icon name="difference" style="font-size: 48px; color: #bdbdbd;"></mdui-icon>
+              <p>文件差异视图</p>
+              <p style="font-size: 12px; color: #999;">功能开发中...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 提交区域 -->
+        <div v-else-if="stagedFiles.length > 0" class="commit-area">
+          <div class="commit-header">
+            <mdui-icon name="commit" style="font-size: 20px;"></mdui-icon>
+            <span>提交更改</span>
+          </div>
+          <div class="commit-content">
+            <mdui-text-field
+              label="提交信息"
+              placeholder="描述你的更改..."
+              v-model="commitMessage"
+              variant="outlined"
+              style="width: 100%;"
+              rows="4"
+            ></mdui-text-field>
+            <div class="commit-actions">
               <mdui-button
                 variant="filled"
                 icon="check"
                 @click="commitChanges"
                 :disabled="!commitMessage.trim()"
                 :loading="committing"
-                style="width: 100%;"
               >
-                提交 ({{ status.staged.length }} 个文件)
+                提交 ({{ stagedFiles.length }} 个文件)
               </mdui-button>
-            </mdui-card>
-          </div>
-
-          <!-- 无更改提示 -->
-          <div v-if="isClean" style="text-align: center; padding: 48px; color: #666;">
-            <mdui-icon name="check_circle" style="font-size: 64px; color: #4caf50;"></mdui-icon>
-            <p style="margin-top: 16px; font-size: 16px;">工作目录干净</p>
-            <p style="margin-top: 8px; font-size: 14px;">没有需要提交的更改</p>
+            </div>
           </div>
         </div>
 
-        <div v-else style="text-align: center; padding: 32px; color: #999;">
-          <mdui-icon name="info" style="font-size: 48px;"></mdui-icon>
-          <p style="margin-top: 16px;">请先选择一个 Git 仓库</p>
-          <mdui-button variant="outlined" @click="goToRepoSelector" style="margin-top: 16px;">
-            选择仓库
-          </mdui-button>
+        <!-- 空状态 -->
+        <div v-else class="detail-empty">
+          <mdui-icon name="info_outline" style="font-size: 48px; color: #bdbdbd;"></mdui-icon>
+          <p>选择文件查看详情</p>
         </div>
       </div>
-    </mdui-card>
+    </div>
 
     <!-- Stash 对话框 -->
     <mdui-dialog :open="stashDialogOpen" @close="stashDialogOpen = false">
@@ -215,6 +203,7 @@ const committing = ref(false)
 const stashDialogOpen = ref(false)
 const stashList = ref([])
 const repoPath = ref('')
+const selectedFile = ref(null)
 
 const isClean = computed(() => {
   if (!status.value) return false
@@ -223,10 +212,58 @@ const isClean = computed(() => {
          (status.value.not_added?.length || 0) === 0
 })
 
-const hasUnstagedChanges = computed(() => {
-  if (!status.value) return false
-  return (status.value.modified?.length || 0) > 0 || (status.value.not_added?.length || 0) > 0
+const unstagedFiles = computed(() => {
+  if (!status.value) return []
+  const files = []
+
+  // Modified files
+  if (status.value.modified) {
+    files.push(...status.value.modified.map(path => ({ path, status: 'M' })))
+  }
+
+  // Not added files
+  if (status.value.not_added) {
+    files.push(...status.value.not_added.map(path => ({ path, status: '?' })))
+  }
+
+  return files
 })
+
+const stagedFiles = computed(() => {
+  return status.value?.staged || []
+})
+
+const getFileIcon = (status) => {
+  switch (status) {
+    case 'M': return 'edit'
+    case '?': return 'note_add'
+    case 'D': return 'delete'
+    default: return 'description'
+  }
+}
+
+const getFileColor = (status) => {
+  switch (status) {
+    case 'M': return '#ff9800'
+    case '?': return '#2196f3'
+    case 'D': return '#f44336'
+    default: return '#757575'
+  }
+}
+
+const getFileStatusText = (status) => {
+  switch (status) {
+    case 'M': return '已修改'
+    case '?': return '未跟踪'
+    case 'D': return '已删除'
+    case 'S': return '已暂存'
+    default: return '未知'
+  }
+}
+
+const selectFile = (file, staged) => {
+  selectedFile.value = { ...file, staged }
+}
 
 const loadStatus = async () => {
   const savedRepoPath = localStorage.getItem('repoPath')
@@ -341,7 +378,9 @@ const commitChanges = async () => {
   if (result.success) {
     snackbar({ message: '提交成功！' })
     commitMessage.value = ''
+    selectedFile.value = null
     loadStatus()
+    window.dispatchEvent(new CustomEvent('branches-updated'))
   } else {
     snackbar({ message: `提交失败: ${result.error}`, closeable: true })
   }
@@ -385,27 +424,286 @@ const goToRepoSelector = () => {
 onMounted(() => {
   loadStatus()
 
-  // 监听仓库选择事件
-  window.addEventListener('repo-selected', () => {
-    loadStatus()
+  // 监听事件
+  window.addEventListener('repo-selected', loadStatus)
+  window.addEventListener('refresh-content', loadStatus)
+  window.addEventListener('git-push', async () => {
+    const result = await window.gitAPI.push(repoPath.value)
+    if (result.success) {
+      snackbar({ message: '推送成功' })
+      loadStatus()
+    } else {
+      snackbar({ message: `推送失败: ${result.error}`, closeable: true })
+    }
   })
+  window.addEventListener('git-pull', async () => {
+    const result = await window.gitAPI.pull(repoPath.value)
+    if (result.success) {
+      snackbar({ message: '拉取成功' })
+      loadStatus()
+    } else {
+      snackbar({ message: `拉取失败: ${result.error}`, closeable: true })
+    }
+  })
+  window.addEventListener('git-stash', showStashDialog)
 })
 </script>
 
 <style scoped>
-.status-view {
-  max-width: 900px;
-  margin: 0 auto;
+.status-view-sourcetree {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
 }
 
-h3 {
-  margin: 0;
-  font-size: 20px;
+.loading-container,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 48px;
 }
 
-h4 {
-  margin: 8px 0;
-  font-size: 16px;
+/* 分栏布局 */
+.split-pane-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.file-list-pane {
+  flex: 0 0 50%;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #e0e0e0;
+  overflow: hidden;
+}
+
+.resizer {
+  height: 4px;
+  background-color: #f5f5f5;
+  cursor: ns-resize;
+  flex-shrink: 0;
+}
+
+.resizer:hover {
+  background-color: #1976d2;
+}
+
+.detail-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 状态栏 */
+.status-bar {
+  padding: 12px 16px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.branch-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge.ahead {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badge.behind {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+/* 文件列表 */
+.file-list-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.file-section {
+  margin-bottom: 16px;
+}
+
+.section-header {
+  padding: 8px 16px;
+  background-color: #f5f5f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #424242;
+}
+
+.count {
+  color: #757575;
+  font-weight: 400;
+}
+
+.section-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.file-item {
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  font-size: 13px;
+}
+
+.file-item:hover {
+  background-color: #f5f5f5;
+}
+
+.file-item.selected {
+  background-color: #e3f2fd;
+}
+
+.file-path {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-status {
+  font-size: 11px;
+  color: #757575;
+  padding: 2px 8px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.file-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.file-item:hover .file-actions {
+  opacity: 1;
+}
+
+.empty-file-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  color: #757575;
+}
+
+/* 详情面板 */
+.file-detail,
+.commit-area,
+.detail-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-header,
+.commit-header {
+  padding: 12px 16px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.detail-title,
+.commit-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
   font-weight: 500;
+}
+
+.detail-content {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #fafafa;
+}
+
+.diff-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #757575;
+}
+
+.commit-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.commit-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.detail-empty {
+  align-items: center;
+  justify-content: center;
+  color: #bdbdbd;
+}
+
+/* 滚动条 */
+.file-list-content::-webkit-scrollbar,
+.detail-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.file-list-content::-webkit-scrollbar-thumb,
+.detail-content::-webkit-scrollbar-thumb {
+  background-color: #bdbdbd;
+  border-radius: 4px;
+}
+
+.file-list-content::-webkit-scrollbar-thumb:hover,
+.detail-content::-webkit-scrollbar-thumb:hover {
+  background-color: #9e9e9e;
 }
 </style>

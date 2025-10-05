@@ -1,59 +1,116 @@
 <template>
-  <mdui-layout class="app-layout">
-    <!-- 顶部工具栏 -->
-    <mdui-top-app-bar>
-      <mdui-button-icon icon="menu" @click="drawer = !drawer"></mdui-button-icon>
-      <mdui-top-app-bar-title>ZiXiao Version Manager</mdui-top-app-bar-title>
-      <div style="flex-grow: 1"></div>
-      <mdui-chip v-if="currentRepo" style="margin-right: 12px;">
-        <mdui-icon slot="icon" name="folder"></mdui-icon>
-        {{ getRepoName(currentRepo) }}
-      </mdui-chip>
-    </mdui-top-app-bar>
-
-    <!-- 侧边栏 -->
-    <mdui-navigation-drawer :open="drawer" @close="drawer = false">
-      <div style="padding: 16px; border-bottom: 1px solid #e0e0e0;">
-        <h3 style="margin: 0 0 8px 0;">导航</h3>
-        <p v-if="currentRepo" style="font-size: 12px; color: #666; margin: 0; word-break: break-all;">
-          {{ currentRepo }}
-        </p>
+  <div class="sourcetree-layout">
+    <!-- 左侧固定侧边栏 -->
+    <aside class="sidebar">
+      <!-- 仓库信息 -->
+      <div class="repo-header">
+        <div class="repo-info">
+          <mdui-icon name="folder" style="font-size: 24px; color: #1976d2;"></mdui-icon>
+          <div class="repo-details">
+            <div class="repo-name">{{ getRepoName(currentRepo) || 'ZiXiao' }}</div>
+            <div class="repo-path" :title="currentRepo">{{ currentRepo || '未选择仓库' }}</div>
+          </div>
+        </div>
       </div>
-      <mdui-list>
-        <mdui-list-item
-          v-for="menu in menus"
-          :key="menu.value"
-          :active="activeMenu === menu.value"
-          @click="selectMenu(menu.value)"
-        >
-          <mdui-icon slot="icon" :name="menu.icon"></mdui-icon>
-          {{ menu.label }}
-        </mdui-list-item>
-      </mdui-list>
-    </mdui-navigation-drawer>
 
-    <!-- 主内容区 -->
-    <mdui-layout-main class="main-content">
-      <component :is="currentComponent" />
-    </mdui-layout-main>
-  </mdui-layout>
+      <!-- 导航菜单 -->
+      <div class="navigation">
+        <div class="nav-section">
+          <div class="nav-section-title">工作区</div>
+          <div
+            v-for="menu in workspaceMenus"
+            :key="menu.value"
+            :class="['nav-item', { active: activeMenu === menu.value }]"
+            @click="selectMenu(menu.value)"
+          >
+            <mdui-icon :name="menu.icon"></mdui-icon>
+            <span>{{ menu.label }}</span>
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">仓库</div>
+          <div
+            v-for="menu in repoMenus"
+            :key="menu.value"
+            :class="['nav-item', { active: activeMenu === menu.value }]"
+            @click="selectMenu(menu.value)"
+          >
+            <mdui-icon :name="menu.icon"></mdui-icon>
+            <span>{{ menu.label }}</span>
+          </div>
+        </div>
+
+        <!-- 分支列表 -->
+        <div class="nav-section" v-if="branches.length > 0">
+          <div class="nav-section-title">
+            <span>分支</span>
+            <mdui-button-icon icon="refresh" @click="loadBranches" style="--mdui-comp-button-icon-size: 20px;"></mdui-button-icon>
+          </div>
+          <div
+            v-for="branch in branches"
+            :key="branch.name"
+            :class="['nav-item', 'branch-item', { current: branch.current }]"
+            @click="switchBranch(branch.name)"
+            :title="branch.name"
+          >
+            <mdui-icon :name="branch.current ? 'check_circle' : 'radio_button_unchecked'" style="font-size: 16px;"></mdui-icon>
+            <span>{{ branch.name }}</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 右侧主内容区 -->
+    <main class="main-area">
+      <!-- 顶部工具栏 -->
+      <div class="toolbar">
+        <div class="toolbar-actions">
+          <mdui-button-group v-if="currentRepo && activeMenu !== 'repo'">
+            <mdui-button icon="refresh" @click="refreshContent">刷新</mdui-button>
+            <mdui-button icon="cloud_upload" v-if="activeMenu === 'status'" @click="pushChanges">推送</mdui-button>
+            <mdui-button icon="cloud_download" v-if="activeMenu === 'status'" @click="pullChanges">拉取</mdui-button>
+            <mdui-button icon="stacks" v-if="activeMenu === 'status'" @click="stashChanges">Stash</mdui-button>
+          </mdui-button-group>
+        </div>
+        <div class="toolbar-search">
+          <mdui-text-field
+            v-if="activeMenu === 'history'"
+            placeholder="搜索提交..."
+            icon="search"
+            clearable
+            style="width: 300px;"
+          ></mdui-text-field>
+        </div>
+      </div>
+
+      <!-- 内容区域 -->
+      <div class="content-area">
+        <component :is="currentComponent" :key="activeMenu" />
+      </div>
+    </main>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { snackbar } from 'mdui'
 import RepositorySelector from './components/RepositorySelector.vue'
 import StatusView from './components/StatusView.vue'
 import CommitHistory from './components/CommitHistory.vue'
 import BranchManager from './components/BranchManager.vue'
 
-const drawer = ref(false)
 const activeMenu = ref('repo')
 const currentRepo = ref('')
+const branches = ref([])
 
-const menus = [
+const workspaceMenus = [
+  { label: '文件状态', value: 'status', icon: 'edit_note' },
+  { label: '提交历史', value: 'history', icon: 'history' }
+]
+
+const repoMenus = [
   { label: '选择仓库', value: 'repo', icon: 'folder_open' },
-  { label: '状态', value: 'status', icon: 'difference' },
-  { label: '提交历史', value: 'history', icon: 'history' },
   { label: '分支管理', value: 'branches', icon: 'account_tree' }
 ]
 
@@ -68,7 +125,6 @@ const currentComponent = computed(() => components[activeMenu.value])
 
 const selectMenu = (menu) => {
   activeMenu.value = menu
-  drawer.value = false
 }
 
 const getRepoName = (path) => {
@@ -80,6 +136,55 @@ const getRepoName = (path) => {
 const updateCurrentRepo = () => {
   const repoPath = localStorage.getItem('repoPath')
   currentRepo.value = repoPath || ''
+  if (repoPath) {
+    loadBranches()
+  }
+}
+
+const loadBranches = async () => {
+  if (!currentRepo.value) return
+
+  try {
+    const result = await window.gitAPI.getBranches(currentRepo.value)
+    if (result.success) {
+      branches.value = result.data.branches
+    }
+  } catch (error) {
+    console.error('Failed to load branches:', error)
+  }
+}
+
+const switchBranch = async (branchName) => {
+  if (!currentRepo.value) return
+
+  try {
+    const result = await window.gitAPI.checkout(currentRepo.value, branchName)
+    if (result.success) {
+      snackbar({ message: `已切换到分支: ${branchName}` })
+      loadBranches()
+      refreshContent()
+    } else {
+      snackbar({ message: `切换失败: ${result.error}`, closeable: true })
+    }
+  } catch (error) {
+    snackbar({ message: `切换失败: ${error.message}`, closeable: true })
+  }
+}
+
+const refreshContent = () => {
+  window.dispatchEvent(new CustomEvent('refresh-content'))
+}
+
+const pushChanges = () => {
+  window.dispatchEvent(new CustomEvent('git-push'))
+}
+
+const pullChanges = () => {
+  window.dispatchEvent(new CustomEvent('git-pull'))
+}
+
+const stashChanges = () => {
+  window.dispatchEvent(new CustomEvent('git-stash'))
 }
 
 onMounted(() => {
@@ -96,6 +201,11 @@ onMounted(() => {
     activeMenu.value = 'repo'
   })
 
+  // 监听分支变化事件
+  window.addEventListener('branches-updated', () => {
+    loadBranches()
+  })
+
   // 如果有已保存的仓库，自动跳转到状态页
   if (currentRepo.value) {
     activeMenu.value = 'status'
@@ -104,19 +214,167 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.app-layout {
+.sourcetree-layout {
+  display: flex;
   height: 100vh;
-}
-
-.main-content {
-  padding: 16px;
-  height: calc(100vh - 64px);
-  overflow-y: auto;
+  overflow: hidden;
   background-color: #f5f5f5;
 }
 
-h3 {
+/* 左侧边栏 */
+.sidebar {
+  width: 250px;
+  background-color: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.repo-header {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #fafafa;
+}
+
+.repo-info {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.repo-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.repo-name {
   font-size: 16px;
+  font-weight: 600;
+  color: #212121;
+  margin-bottom: 4px;
+}
+
+.repo-path {
+  font-size: 11px;
+  color: #757575;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 导航区域 */
+.navigation {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.nav-section {
+  margin-bottom: 16px;
+}
+
+.nav-section-title {
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #757575;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: #424242;
+  font-size: 14px;
+}
+
+.nav-item:hover {
+  background-color: #f5f5f5;
+}
+
+.nav-item.active {
+  background-color: #e3f2fd;
+  color: #1976d2;
   font-weight: 500;
+}
+
+.nav-item mdui-icon {
+  font-size: 20px;
+}
+
+.branch-item {
+  padding-left: 24px;
+  font-size: 13px;
+}
+
+.branch-item.current {
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.branch-item span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 右侧主区域 */
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 工具栏 */
+.toolbar {
+  height: 56px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  gap: 16px;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.toolbar-search {
+  display: flex;
+  gap: 8px;
+}
+
+/* 内容区域 */
+.content-area {
+  flex: 1;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+/* 滚动条样式 */
+.navigation::-webkit-scrollbar {
+  width: 6px;
+}
+
+.navigation::-webkit-scrollbar-thumb {
+  background-color: #bdbdbd;
+  border-radius: 3px;
+}
+
+.navigation::-webkit-scrollbar-thumb:hover {
+  background-color: #9e9e9e;
 }
 </style>
