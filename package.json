@@ -24,6 +24,7 @@
   "build": {
     "appId": "com.zixiao.version-manager",
     "productName": "ZiXiao Version Manager",
+    "publish": null,
     "directories": {
       "output": "dist-electron"
     },

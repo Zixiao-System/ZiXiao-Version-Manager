@@ -47,7 +47,8 @@ jobs:
       - name: Build Electron app
         run: npm run electron:build
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Disable auto-publish to avoid conflicts between parallel builds
+          PUBLISH_FOR_PULL_REQUEST: false
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
