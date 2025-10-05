@@ -166,6 +166,46 @@ All icons use mdui's Material Icons via `<mdui-icon name="icon_name">`. Common i
 - `add`, `remove`, `undo`, `refresh` - Actions
 - `history`, `account_tree`, `difference` - Navigation
 
+### Commit Message Convention
+
+**IMPORTANT**: All commit messages MUST follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
+**Format**: `<type>(<scope>): <subject>`
+
+**Rules**:
+- **NO emoji symbols allowed** in commit messages
+- Type must be lowercase
+- Subject should be concise and descriptive
+- Use present tense ("add" not "added")
+
+**Common types**:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, no logic change)
+- `refactor`: Code refactoring
+- `perf`: Performance improvements
+- `test`: Adding or updating tests
+- `build`: Build system changes
+- `ci`: CI/CD changes
+- `chore`: Other changes (dependencies, tooling)
+
+**Examples**:
+```
+feat(ui): add dark mode toggle to settings
+fix(git): resolve branch deletion error on Windows
+docs(readme): update installation instructions
+ci(actions): add multi-platform build workflow
+```
+
+**When committing via Claude Code**:
+Always append the following footer:
+```
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
 ## Important Constraints
 
 1. **IPC Serialization**: Never return objects with methods through IPC. Always map to plain objects.
