@@ -16,7 +16,10 @@
     "electron",
     "vue"
   ],
-  "author": "",
+  "author": {
+    "name": "Amiya167",
+    "email": "neuvillette-fontaine@outlook.com"
+  },
   "license": "MIT",
   "build": {
     "appId": "com.zixiao.version-manager",
