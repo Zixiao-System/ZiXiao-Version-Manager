@@ -1,0 +1,23 @@
+# CODEOWNERS
+# This file defines the code owners for this repository.
+# Code owners are automatically requested for review when someone opens a pull request.
+
+# Global owners - these users will be requested for review on all PRs
+* @Amiya167 @HwlloChen
+
+# Electron main process
+/electron/ @Amiya167 @HwlloChen
+
+# Vue components and frontend
+/src/ @Amiya167 @HwlloChen
+
+# Configuration files
+*.json @Amiya167 @HwlloChen
+*.yml @Amiya167 @HwlloChen
+*.yaml @Amiya167 @HwlloChen
+
+# GitHub Actions workflows
+/.github/workflows/ @Amiya167 @HwlloChen
+
+# Documentation
+*.md @Amiya167 @HwlloChen
