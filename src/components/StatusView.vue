@@ -5,8 +5,8 @@
     </div>
 
     <div v-else-if="!repoPath" class="empty-state">
-      <mdui-icon name="folder_open" style="font-size: 64px; color: #bdbdbd;"></mdui-icon>
-      <p style="margin-top: 16px; font-size: 16px; color: #757575;">请先选择一个 Git 仓库</p>
+      <mdui-icon name="folder_open" style="font-size: 64px; color: rgb(var(--mdui-color-outline));"></mdui-icon>
+      <p style="margin-top: 16px; font-size: 16px; color: rgb(var(--mdui-color-on-surface-variant));">请先选择一个 Git 仓库</p>
       <mdui-button variant="filled" @click="goToRepoSelector" style="margin-top: 16px;">
         选择仓库
       </mdui-button>
@@ -18,7 +18,7 @@
         <!-- 当前分支和状态栏 -->
         <div class="status-bar">
           <div class="branch-info">
-            <mdui-icon name="account_tree" style="font-size: 18px; color: #1976d2;"></mdui-icon>
+            <mdui-icon name="account_tree" style="font-size: 18px; color: rgb(var(--mdui-color-primary));"></mdui-icon>
             <strong>{{ status?.current || 'main' }}</strong>
             <span v-if="status?.ahead" class="badge ahead">↑ {{ status.ahead }}</span>
             <span v-if="status?.behind" class="badge behind">↓ {{ status.behind }}</span>
@@ -111,9 +111,9 @@
           </div>
           <div class="detail-content">
             <div class="diff-placeholder">
-              <mdui-icon name="difference" style="font-size: 48px; color: #bdbdbd;"></mdui-icon>
+              <mdui-icon name="difference" style="font-size: 48px; color: rgb(var(--mdui-color-outline));"></mdui-icon>
               <p>文件差异视图</p>
-              <p style="font-size: 12px; color: #999;">功能开发中...</p>
+              <p style="font-size: 12px; color: rgb(var(--mdui-color-on-surface-variant));">功能开发中...</p>
             </div>
           </div>
         </div>
@@ -149,7 +149,7 @@
 
         <!-- 空状态 -->
         <div v-else class="detail-empty">
-          <mdui-icon name="info_outline" style="font-size: 48px; color: #bdbdbd;"></mdui-icon>
+          <mdui-icon name="info_outline" style="font-size: 48px; color: rgb(var(--mdui-color-outline));"></mdui-icon>
           <p>选择文件查看详情</p>
         </div>
       </div>
@@ -171,7 +171,7 @@
             <mdui-list-item v-for="(stash, index) in stashList" :key="index">
               <div>
                 <div style="font-weight: 500;">{{ stash.message || `Stash ${index}` }}</div>
-                <div style="font-size: 12px; color: #666;">{{ stash.hash }}</div>
+                <div style="font-size: 12px; color: rgb(var(--mdui-color-on-surface-variant));">{{ stash.hash }}</div>
               </div>
               <mdui-button
                 slot="end-icon"
@@ -183,7 +183,7 @@
             </mdui-list-item>
           </mdui-list>
         </div>
-        <div v-else style="text-align: center; padding: 16px; color: #999;">
+        <div v-else style="text-align: center; padding: 16px; color: rgb(var(--mdui-color-on-surface-variant));">
           暂无 Stash
         </div>
       </div>
@@ -454,7 +454,7 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: rgb(var(--mdui-color-surface-container-lowest));
 }
 
 .loading-container,
@@ -479,19 +479,19 @@ onMounted(() => {
   flex: 0 0 50%;
   display: flex;
   flex-direction: column;
-  border-bottom: 1px solid #e0e0e0;
+  border: 1px solid rgb(var(--mdui-color-outline-variant));
   overflow: hidden;
 }
 
 .resizer {
   height: 4px;
-  background-color: #f5f5f5;
+  background-color: rgb(var(--mdui-color-surface-container));
   cursor: ns-resize;
   flex-shrink: 0;
 }
 
 .resizer:hover {
-  background-color: #1976d2;
+  background-color: rgb(var(--mdui-color-primary));
 }
 
 .detail-pane {
@@ -504,8 +504,8 @@ onMounted(() => {
 /* 状态栏 */
 .status-bar {
   padding: 12px 16px;
-  background-color: #fafafa;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: rgb(var(--mdui-color-surface-container-low));
+  border: 1px solid rgb(var(--mdui-color-outline-variant));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -527,13 +527,13 @@ onMounted(() => {
 }
 
 .badge.ahead {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background-color: rgba(var(--git-added), 0.1);
+  color: var(--git-added);
 }
 
 .badge.behind {
-  background-color: #fff3e0;
-  color: #e65100;
+  background-color: rgba(var(--git-modified), 0.1);
+  color: var(--git-modified);
 }
 
 /* 文件列表 */
@@ -549,7 +549,7 @@ onMounted(() => {
 
 .section-header {
   padding: 8px 16px;
-  background-color: #f5f5f5;
+  background-color: rgb(var(--mdui-color-surface-container));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -564,11 +564,11 @@ onMounted(() => {
   gap: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #424242;
+  color: rgb(var(--mdui-color-on-surface));
 }
 
 .count {
-  color: #757575;
+  color: rgb(var(--mdui-color-on-surface-variant));
   font-weight: 400;
 }
 
@@ -588,11 +588,11 @@ onMounted(() => {
 }
 
 .file-item:hover {
-  background-color: #f5f5f5;
+  background-color: rgb(var(--mdui-color-surface-container));
 }
 
 .file-item.selected {
-  background-color: #e3f2fd;
+  background-color: rgb(var(--mdui-color-primary-container));
 }
 
 .file-path {
@@ -604,9 +604,9 @@ onMounted(() => {
 
 .file-status {
   font-size: 11px;
-  color: #757575;
+  color: rgb(var(--mdui-color-on-surface-variant));
   padding: 2px 8px;
-  background-color: #f5f5f5;
+  background-color: rgb(var(--mdui-color-surface-container));
   border-radius: 8px;
 }
 
@@ -627,7 +627,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 48px;
-  color: #757575;
+  color: rgb(var(--mdui-color-on-surface-variant));
 }
 
 /* 详情面板 */
@@ -642,8 +642,8 @@ onMounted(() => {
 .detail-header,
 .commit-header {
   padding: 12px 16px;
-  background-color: #fafafa;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: rgb(var(--mdui-color-surface-container-low));
+  border: 1px solid rgb(var(--mdui-color-outline-variant));
   flex-shrink: 0;
 }
 
@@ -659,7 +659,7 @@ onMounted(() => {
 .detail-content {
   flex: 1;
   overflow-y: auto;
-  background-color: #fafafa;
+  background-color: rgb(var(--mdui-color-surface-container-low));
 }
 
 .diff-placeholder {
@@ -668,7 +668,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #757575;
+  color: rgb(var(--mdui-color-on-surface-variant));
 }
 
 .commit-content {
@@ -686,7 +686,7 @@ onMounted(() => {
 .detail-empty {
   align-items: center;
   justify-content: center;
-  color: #bdbdbd;
+  color: rgb(var(--mdui-color-outline));
 }
 
 /* 滚动条 */
@@ -698,12 +698,12 @@ onMounted(() => {
 
 .file-list-content::-webkit-scrollbar-thumb,
 .detail-content::-webkit-scrollbar-thumb {
-  background-color: #bdbdbd;
+  background-color: rgb(var(--mdui-color-outline));
   border-radius: 4px;
 }
 
 .file-list-content::-webkit-scrollbar-thumb:hover,
 .detail-content::-webkit-scrollbar-thumb:hover {
-  background-color: #9e9e9e;
+  background-color: rgb(var(--mdui-color-outline-variant));
 }
 </style>

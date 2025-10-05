@@ -1,0 +1,150 @@
+/* ZiXiao Version Manager - 紫霄主题配色 */
+
+:root {
+  /* 紫霄紫 - 主色调 #8B5CF6 (RGB: 139, 92, 246) */
+  --mdui-color-primary-light: 139, 92, 246;
+  --mdui-color-primary-dark: 167, 139, 250;
+
+  /* 主色容器 */
+  --mdui-color-primary-container-light: 237, 233, 254;
+  --mdui-color-primary-container-dark: 88, 28, 135;
+
+  /* 主色上的文字 */
+  --mdui-color-on-primary-light: 255, 255, 255;
+  --mdui-color-on-primary-dark: 76, 29, 149;
+
+  /* 主色容器上的文字 */
+  --mdui-color-on-primary-container-light: 44, 0, 81;
+  --mdui-color-on-primary-container-dark: 237, 233, 254;
+
+  /* 反转主色 */
+  --mdui-color-inverse-primary-light: 167, 139, 250;
+  --mdui-color-inverse-primary-dark: 139, 92, 246;
+
+  /* 雷电金 - 次要色调 #FCD34D (RGB: 252, 211, 77) */
+  --mdui-color-secondary-light: 252, 211, 77;
+  --mdui-color-secondary-dark: 253, 224, 71;
+
+  /* 次要色容器 */
+  --mdui-color-secondary-container-light: 254, 249, 195;
+  --mdui-color-secondary-container-dark: 161, 98, 7;
+
+  /* 次要色上的文字 */
+  --mdui-color-on-secondary-light: 66, 32, 6;
+  --mdui-color-on-secondary-dark: 120, 53, 15;
+
+  /* 次要色容器上的文字 */
+  --mdui-color-on-secondary-container-light: 44, 16, 0;
+  --mdui-color-on-secondary-container-dark: 254, 249, 195;
+
+  /* 云雾白/深空黑 - 背景色 */
+  --mdui-color-background-light: 248, 250, 252; /* #F8FAFC */
+  --mdui-color-background-dark: 15, 23, 42; /* #0F172A */
+
+  /* 表面色 */
+  --mdui-color-surface-light: 248, 250, 252;
+  --mdui-color-surface-dark: 15, 23, 42;
+
+  --mdui-color-surface-dim-light: 226, 232, 240;
+  --mdui-color-surface-dim-dark: 15, 23, 42;
+
+  --mdui-color-surface-bright-light: 255, 255, 255;
+  --mdui-color-surface-bright-dark: 51, 65, 85;
+
+  /* 表面容器 */
+  --mdui-color-surface-container-lowest-light: 255, 255, 255;
+  --mdui-color-surface-container-lowest-dark: 2, 6, 23;
+
+  --mdui-color-surface-container-low-light: 249, 250, 251;
+  --mdui-color-surface-container-low-dark: 30, 41, 59;
+
+  --mdui-color-surface-container-light: 241, 245, 249;
+  --mdui-color-surface-container-dark: 30, 41, 59;
+
+  --mdui-color-surface-container-high-light: 226, 232, 240;
+  --mdui-color-surface-container-high-dark: 51, 65, 85;
+
+  --mdui-color-surface-container-highest-light: 203, 213, 225;
+  --mdui-color-surface-container-highest-dark: 71, 85, 105;
+
+  /* 表面变体 */
+  --mdui-color-surface-variant-light: 226, 232, 240;
+  --mdui-color-surface-variant-dark: 71, 85, 105;
+
+  /* 表面上的文字 */
+  --mdui-color-on-surface-light: 15, 23, 42;
+  --mdui-color-on-surface-dark: 248, 250, 252;
+
+  --mdui-color-on-surface-variant-light: 71, 85, 105;
+  --mdui-color-on-surface-variant-dark: 203, 213, 225;
+
+  /* 反转表面 */
+  --mdui-color-inverse-surface-light: 30, 41, 59;
+  --mdui-color-inverse-surface-dark: 226, 232, 240;
+
+  --mdui-color-inverse-on-surface-light: 248, 250, 252;
+  --mdui-color-inverse-on-surface-dark: 15, 23, 42;
+
+  /* 背景上的文字 */
+  --mdui-color-on-background-light: 15, 23, 42;
+  --mdui-color-on-background-dark: 248, 250, 252;
+
+  /* 轮廓 */
+  --mdui-color-outline-light: 148, 163, 184;
+  --mdui-color-outline-dark: 100, 116, 139;
+
+  --mdui-color-outline-variant-light: 203, 213, 225;
+  --mdui-color-outline-variant-dark: 51, 65, 85;
+
+  /* 表面着色 */
+  --mdui-color-surface-tint-color-light: 139, 92, 246;
+  --mdui-color-surface-tint-color-dark: 167, 139, 250;
+}
+
+/* 自定义应用色彩变量 */
+:root {
+  /* 紫霄紫 */
+  --zixiao-purple: #8B5CF6;
+  --zixiao-purple-light: #A78BFA;
+  --zixiao-purple-dark: #7C3AED;
+
+  /* 雷电金 */
+  --lightning-gold: #FCD34D;
+  --lightning-gold-light: #FDE047;
+  --lightning-gold-dark: #FBBF24;
+
+  /* 深空黑 */
+  --deep-space-black: #0F172A;
+  --deep-space-black-light: #1E293B;
+  --deep-space-black-lighter: #334155;
+
+  /* 云雾白 */
+  --cloud-white: #F8FAFC;
+  --cloud-white-dark: #F1F5F9;
+  --cloud-white-darker: #E2E8F0;
+
+  /* Git 状态颜色 - RGB 格式用于 rgba() */
+  --git-added: 34, 197, 94; /* #22C55E */
+  --git-modified: 245, 158, 11; /* #F59E0B */
+  --git-deleted: 239, 68, 68; /* #EF4444 */
+  --git-untracked: 59, 130, 246; /* #3B82F6 */
+}
+
+/* 全局主题覆盖 */
+:root,
+.mdui-theme-light {
+  color: rgb(var(--mdui-color-on-background-light));
+  background-color: rgb(var(--mdui-color-background-light));
+}
+
+.mdui-theme-dark {
+  color: rgb(var(--mdui-color-on-background-dark));
+  background-color: rgb(var(--mdui-color-background-dark));
+}
+
+@media (prefers-color-scheme: dark) {
+  .mdui-theme-auto {
+    color: rgb(var(--mdui-color-on-background-dark));
+    background-color: rgb(var(--mdui-color-background-dark));
+  }
+}

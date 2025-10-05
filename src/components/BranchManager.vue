@@ -49,7 +49,7 @@
           </div>
         </div>
 
-        <div v-else style="text-align: center; padding: 32px; color: #999;">
+        <div v-else style="text-align: center; padding: 32px; color: rgb(var(--mdui-color-on-surface-variant));">
           <p>请先选择一个 Git 仓库</p>
         </div>
       </div>

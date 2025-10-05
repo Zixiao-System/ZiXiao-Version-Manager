@@ -3,9 +3,9 @@
     <mdui-card variant="outlined" class="repo-selector">
       <div style="padding: 24px;">
         <div style="text-align: center; margin-bottom: 24px;">
-          <mdui-icon name="folder_open" style="font-size: 64px; color: #1976d2;"></mdui-icon>
+          <mdui-icon name="folder_open" style="font-size: 64px; color: rgb(var(--mdui-color-primary));"></mdui-icon>
           <h2 style="margin-top: 16px;">选择 Git 仓库</h2>
-          <p style="color: #666; margin-top: 8px;">选择一个现有的仓库，或者初始化/克隆一个新仓库</p>
+          <p style="color: rgb(var(--mdui-color-on-surface-variant)); margin-top: 8px;">选择一个现有的仓库，或者初始化/克隆一个新仓库</p>
         </div>
 
         <!-- 选择现有仓库 -->
@@ -114,7 +114,7 @@
               <mdui-icon slot="icon" name="history"></mdui-icon>
               <div>
                 <div style="font-weight: 500;">{{ getRepoName(repo) }}</div>
-                <div style="font-size: 12px; color: #666;">{{ repo }}</div>
+                <div style="font-size: 12px; color: rgb(var(--mdui-color-on-surface-variant));">{{ repo }}</div>
               </div>
               <mdui-button-icon
                 slot="end-icon"

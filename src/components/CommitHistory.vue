@@ -33,7 +33,7 @@
           </div>
         </div>
         <div v-else class="empty-list">
-          <mdui-icon name="history" style="font-size: 64px; color: #bdbdbd;"></mdui-icon>
+          <mdui-icon name="history" style="font-size: 64px; color: rgb(var(--mdui-color-outline));"></mdui-icon>
           <p>暂无提交历史</p>
         </div>
       </div>
@@ -78,15 +78,15 @@
             <div class="detail-section">
               <div class="detail-label">文件更改</div>
               <div class="files-placeholder">
-                <mdui-icon name="folder" style="font-size: 36px; color: #bdbdbd;"></mdui-icon>
+                <mdui-icon name="folder" style="font-size: 36px; color: rgb(var(--mdui-color-outline));"></mdui-icon>
                 <p>文件更改列表</p>
-                <p style="font-size: 12px; color: #999;">功能开发中...</p>
+                <p style="font-size: 12px; color: rgb(var(--mdui-color-on-surface-variant));">功能开发中...</p>
               </div>
             </div>
           </div>
         </div>
         <div v-else class="detail-empty">
-          <mdui-icon name="info_outline" style="font-size: 48px; color: #bdbdbd;"></mdui-icon>
+          <mdui-icon name="info_outline" style="font-size: 48px; color: rgb(var(--mdui-color-outline));"></mdui-icon>
           <p>选择提交查看详情</p>
         </div>
       </div>
@@ -185,7 +185,7 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: rgb(var(--mdui-color-surface-container-lowest));
 }
 
 .loading-container {
@@ -207,19 +207,19 @@ onMounted(() => {
   flex: 0 0 50%;
   display: flex;
   flex-direction: column;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid rgb(var(--mdui-color-outline-variant));
   overflow: hidden;
 }
 
 .resizer {
   height: 4px;
-  background-color: #f5f5f5;
+  background-color: rgb(var(--mdui-color-surface-container));
   cursor: ns-resize;
   flex-shrink: 0;
 }
 
 .resizer:hover {
-  background-color: #1976d2;
+  background-color: rgb(var(--mdui-color-primary));
 }
 
 .detail-pane {
@@ -246,12 +246,12 @@ onMounted(() => {
 }
 
 .commit-item:hover {
-  background-color: #f5f5f5;
+  background-color: rgb(var(--mdui-color-surface-container));
 }
 
 .commit-item.selected {
-  background-color: #e3f2fd;
-  border-left-color: #1976d2;
+  background-color: rgb(var(--mdui-color-primary-container));
+  border-left-color: rgb(var(--mdui-color-primary));
 }
 
 .commit-graph {
@@ -267,9 +267,9 @@ onMounted(() => {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #1976d2;
+  background-color: rgb(var(--mdui-color-primary));
   border: 2px solid #ffffff;
-  box-shadow: 0 0 0 2px #1976d2;
+  box-shadow: 0 0 0 2px rgb(var(--mdui-color-primary));
   margin-top: 4px;
   z-index: 1;
 }
@@ -293,7 +293,7 @@ onMounted(() => {
 .commit-message {
   font-size: 14px;
   font-weight: 500;
-  color: #212121;
+  color: rgb(var(--mdui-color-on-surface));
   margin-bottom: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -305,19 +305,19 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #757575;
+  color: rgb(var(--mdui-color-on-surface-variant));
 }
 
 .separator {
-  color: #bdbdbd;
+  color: rgb(var(--mdui-color-outline));
 }
 
 .commit-hash {
   font-family: monospace;
-  background-color: #f5f5f5;
+  background-color: rgb(var(--mdui-color-surface-container));
   padding: 2px 6px;
   border-radius: 4px;
-  color: #424242;
+  color: rgb(var(--mdui-color-on-surface));
 }
 
 .empty-list {
@@ -326,7 +326,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #757575;
+  color: rgb(var(--mdui-color-on-surface-variant));
 }
 
 /* 详情面板 */
@@ -339,8 +339,8 @@ onMounted(() => {
 
 .detail-header {
   padding: 12px 16px;
-  background-color: #fafafa;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: rgb(var(--mdui-color-surface-container-low));
+  border-bottom: 1px solid rgb(var(--mdui-color-outline-variant));
   flex-shrink: 0;
 }
 
@@ -372,7 +372,7 @@ onMounted(() => {
 .detail-label {
   font-size: 11px;
   font-weight: 600;
-  color: #757575;
+  color: rgb(var(--mdui-color-on-surface-variant));
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -380,7 +380,7 @@ onMounted(() => {
 
 .detail-value {
   font-size: 14px;
-  color: #212121;
+  color: rgb(var(--mdui-color-on-surface));
   word-break: break-all;
 }
 
@@ -393,7 +393,7 @@ onMounted(() => {
 .hash-value {
   font-family: monospace;
   font-size: 12px;
-  background-color: #f5f5f5;
+  background-color: rgb(var(--mdui-color-surface-container));
   padding: 8px 12px;
   border-radius: 4px;
   display: flex;
@@ -402,7 +402,7 @@ onMounted(() => {
 }
 
 .email {
-  color: #757575;
+  color: rgb(var(--mdui-color-on-surface-variant));
   font-size: 12px;
   margin-left: 4px;
 }
@@ -413,15 +413,15 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 48px;
-  background-color: #fafafa;
+  background-color: rgb(var(--mdui-color-surface-container-low));
   border-radius: 8px;
-  color: #757575;
+  color: rgb(var(--mdui-color-on-surface-variant));
 }
 
 .detail-empty {
   align-items: center;
   justify-content: center;
-  color: #bdbdbd;
+  color: rgb(var(--mdui-color-outline));
 }
 
 /* 滚动条 */
@@ -432,12 +432,12 @@ onMounted(() => {
 
 .commit-list::-webkit-scrollbar-thumb,
 .detail-content::-webkit-scrollbar-thumb {
-  background-color: #bdbdbd;
+  background-color: rgb(var(--mdui-color-outline));
   border-radius: 4px;
 }
 
 .commit-list::-webkit-scrollbar-thumb:hover,
 .detail-content::-webkit-scrollbar-thumb:hover {
-  background-color: #9e9e9e;
+  background-color: rgb(var(--mdui-color-outline-variant));
 }
 </style>

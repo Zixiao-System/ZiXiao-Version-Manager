@@ -5,7 +5,7 @@
       <!-- 仓库信息 -->
       <div class="repo-header">
         <div class="repo-info">
-          <mdui-icon name="folder" style="font-size: 24px; color: #1976d2;"></mdui-icon>
+          <mdui-icon name="folder" style="font-size: 24px; color: rgb(var(--mdui-color-primary));"></mdui-icon>
           <div class="repo-details">
             <div class="repo-name">{{ getRepoName(currentRepo) || 'ZiXiao' }}</div>
             <div class="repo-path" :title="currentRepo">{{ currentRepo || '未选择仓库' }}</div>
@@ -81,6 +81,8 @@
             clearable
             style="width: 300px;"
           ></mdui-text-field>
+          <!-- 深色模式切换 -->
+          <mdui-button-icon :icon="isDarkMode ? 'light_mode' : 'dark_mode'" @click="toggleDarkMode" title="切换深色模式"></mdui-button-icon>
         </div>
       </div>
 
@@ -94,7 +96,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { snackbar } from 'mdui'
+import { snackbar, setTheme, getTheme } from 'mdui'
 import RepositorySelector from './components/RepositorySelector.vue'
 import StatusView from './components/StatusView.vue'
 import CommitHistory from './components/CommitHistory.vue'
@@ -103,6 +105,7 @@ import BranchManager from './components/BranchManager.vue'
 const activeMenu = ref('repo')
 const currentRepo = ref('')
 const branches = ref([])
+const isDarkMode = ref(false)
 
 const workspaceMenus = [
   { label: '文件状态', value: 'status', icon: 'edit_note' },
@@ -187,7 +190,30 @@ const stashChanges = () => {
   window.dispatchEvent(new CustomEvent('git-stash'))
 }
 
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value
+  const theme = isDarkMode.value ? 'dark' : 'light'
+  setTheme(theme)
+  localStorage.setItem('theme', theme)
+  snackbar({ message: isDarkMode.value ? '已切换到深色模式' : '已切换到浅色模式' })
+}
+
+const initTheme = () => {
+  // 从 localStorage 读取主题设置
+  const savedTheme = localStorage.getItem('theme')
+  if (savedTheme) {
+    isDarkMode.value = savedTheme === 'dark'
+    setTheme(savedTheme)
+  } else {
+    // 默认跟随系统
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    isDarkMode.value = systemDark
+    setTheme(systemDark ? 'dark' : 'light')
+  }
+}
+
 onMounted(() => {
+  initTheme()
   updateCurrentRepo()
 
   // 监听仓库选择事件
@@ -218,14 +244,14 @@ onMounted(() => {
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background-color: #f5f5f5;
+  background-color: rgb(var(--mdui-color-background));
 }
 
 /* 左侧边栏 */
 .sidebar {
   width: 250px;
-  background-color: #ffffff;
-  border-right: 1px solid #e0e0e0;
+  background-color: rgb(var(--mdui-color-surface-container-lowest));
+  border-right: 1px solid rgb(var(--mdui-color-outline-variant));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -233,8 +259,8 @@ onMounted(() => {
 
 .repo-header {
   padding: 16px;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: #fafafa;
+  border-bottom: 1px solid rgb(var(--mdui-color-outline-variant));
+  background-color: rgb(var(--mdui-color-surface-container-low));
 }
 
 .repo-info {
@@ -251,13 +277,13 @@ onMounted(() => {
 .repo-name {
   font-size: 16px;
   font-weight: 600;
-  color: #212121;
+  color: rgb(var(--mdui-color-on-surface));
   margin-bottom: 4px;
 }
 
 .repo-path {
   font-size: 11px;
-  color: #757575;
+  color: rgb(var(--mdui-color-on-surface-variant));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -278,7 +304,7 @@ onMounted(() => {
   padding: 8px 16px;
   font-size: 11px;
   font-weight: 600;
-  color: #757575;
+  color: rgb(var(--mdui-color-on-surface-variant));
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
@@ -293,17 +319,17 @@ onMounted(() => {
   padding: 8px 16px;
   cursor: pointer;
   transition: background-color 0.2s;
-  color: #424242;
+  color: rgb(var(--mdui-color-on-surface));
   font-size: 14px;
 }
 
 .nav-item:hover {
-  background-color: #f5f5f5;
+  background-color: rgb(var(--mdui-color-surface-container-high));
 }
 
 .nav-item.active {
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: rgb(var(--mdui-color-primary-container));
+  color: rgb(var(--mdui-color-on-primary-container));
   font-weight: 500;
 }
 
@@ -317,7 +343,7 @@ onMounted(() => {
 }
 
 .branch-item.current {
-  color: #1976d2;
+  color: rgb(var(--mdui-color-primary));
   font-weight: 500;
 }
 
@@ -338,8 +364,8 @@ onMounted(() => {
 /* 工具栏 */
 .toolbar {
   height: 56px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: rgb(var(--mdui-color-surface-container-lowest));
+  border-bottom: 1px solid rgb(var(--mdui-color-outline-variant));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -354,6 +380,7 @@ onMounted(() => {
 
 .toolbar-search {
   display: flex;
+  align-items: center;
   gap: 8px;
 }
 
@@ -361,7 +388,7 @@ onMounted(() => {
 .content-area {
   flex: 1;
   overflow: hidden;
-  background-color: #f5f5f5;
+  background-color: rgb(var(--mdui-color-surface-container-low));
 }
 
 /* 滚动条样式 */
@@ -370,11 +397,11 @@ onMounted(() => {
 }
 
 .navigation::-webkit-scrollbar-thumb {
-  background-color: #bdbdbd;
+  background-color: rgb(var(--mdui-color-outline));
   border-radius: 3px;
 }
 
 .navigation::-webkit-scrollbar-thumb:hover {
-  background-color: #9e9e9e;
+  background-color: rgb(var(--mdui-color-outline-variant));
 }
 </style>
