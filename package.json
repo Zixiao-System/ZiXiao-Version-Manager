@@ -1,6 +1,6 @@
 {
   "name": "zixiao-version-manager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Git GUI client built with Vue and Electron",
   "main": "electron/main.js",
   "scripts": {
