@@ -6,7 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ZiXiao Version Manager is a production-ready Git GUI client built with Vue 3, Electron, and mdui (Material Design UI library). The application provides a modern interface for Git operations with complete repository management, file staging, commit history, branch management, and remote operations.
 
+**Current Version**: v1.0.1
+**License**: MIT
 **Tech Stack**: Vue 3.4+ (Composition API) + Electron 28+ + mdui 2.x + Vite 5 + simple-git
+
+**Project Goals**:
+- Provide an intuitive, fast, and beautiful Git GUI for developers
+- Support all major Git operations with a focus on daily workflows
+- Maintain cross-platform compatibility (macOS, Windows, Linux)
+- Keep the codebase clean, maintainable, and well-documented
 
 ## Development Commands
 
@@ -255,3 +263,127 @@ See `TROUBLESHOOTING.md` for 14 common issues and solutions, including:
 - Port conflicts
 - IPC serialization errors
 - Repository loading failures
+
+## Project Documentation
+
+- **TODO.md** - Feature roadmap and improvement tasks organized by priority
+- **ROADMAP.md** - Development timeline from 2025-10-06 to 2026-07-15 with version milestones
+- **README.md** - User-facing documentation with installation and usage instructions (Chinese)
+- **TROUBLESHOOTING.md** - Comprehensive troubleshooting guide with 14 common issues
+- **START_HERE.md** - Quick start guide for new developers
+- **PROJECT_SUMMARY.md** - High-level project overview and architecture summary
+- **CHANGELOG.md** - Version history and release notes
+
+## Development Roadmap
+
+See `ROADMAP.md` for the complete development plan. Key upcoming features:
+
+### Short-term (Q4 2025)
+- v1.1.0: Diff viewer, dark mode, search functionality
+- v1.2.0: Tag management, remote branches, merge conflict resolution
+
+### Mid-term (Q1-Q2 2026)
+- v1.3.0: Commit graph visualization, statistics dashboard
+- v1.4.0: Rebase, cherry-pick, undo/redo system
+- v1.5.0: GitHub/GitLab integration, i18n support
+
+### Long-term (Q3 2026)
+- v2.0.0: TypeScript migration, Pinia state management, comprehensive testing
+
+See `TODO.md` for detailed task lists organized by priority (high/medium/low).
+
+## Code Quality Standards
+
+### Testing
+- Unit tests for all core functionality (target: 80% coverage)
+- Integration tests for IPC communication
+- E2E tests for critical user flows
+- Test files should be co-located with source files
+
+### Performance
+- Keep bundle size minimal (use tree-shaking)
+- Implement virtual scrolling for large lists (>100 items)
+- Cache expensive Git operations
+- Optimize re-renders with proper Vue reactivity patterns
+
+### Accessibility
+- Use semantic HTML where possible
+- Ensure keyboard navigation works for all features
+- Maintain proper ARIA labels for mdui components
+- Test with screen readers
+
+### Security
+- Never expose sensitive APIs through preload script
+- Validate all user inputs before Git operations
+- Sanitize file paths to prevent directory traversal
+- Use content security policy in production builds
+
+## Contributing Guidelines
+
+When contributing to this project:
+
+1. **Branch naming**: `feat/feature-name`, `fix/bug-name`, `docs/doc-name`
+2. **Commit messages**: Follow Conventional Commits (see above)
+3. **Code style**:
+   - Use 2 spaces for indentation
+   - Use single quotes for strings
+   - Add JSDoc comments for complex functions
+   - Keep functions small and focused
+4. **Pull requests**:
+   - Reference related issues
+   - Include screenshots for UI changes
+   - Ensure all tests pass
+   - Update documentation as needed
+
+## Known Issues and Limitations
+
+- **Windows path handling**: Some edge cases with UNC paths
+- **Large repositories**: Performance degrades with >10k commits (optimization planned for v1.1.0)
+- **Submodules**: Not yet supported (planned for v1.5.0)
+- **Git LFS**: Limited support (improvements planned)
+- **Network operations**: No timeout/retry mechanism (planned for v1.2.0)
+
+## Future Considerations
+
+### Planned Major Refactorings
+- **TypeScript migration** (v2.0.0): Full type safety across the codebase
+- **State management** (v2.0.0): Replace localStorage with Pinia for better reactivity
+- **Component library**: Consider creating a shared component library for common UI patterns
+- **Testing infrastructure**: Set up comprehensive testing with Vitest and Playwright
+
+### Performance Optimizations
+- Implement web workers for heavy Git operations
+- Use IndexedDB for caching large datasets
+- Lazy load components and routes
+- Optimize electron bundle size
+
+### Architecture Improvements
+- Implement a plugin system for extensibility
+- Add event sourcing for undo/redo
+- Consider micro-frontend architecture for large features
+- Improve error boundaries and fallback UI
+
+## Environment Variables
+
+```bash
+# Development
+NODE_ENV=development    # Enables dev tools, hot reload
+ELECTRON_ENABLE_LOGGING=1  # Verbose Electron logs
+
+# Production
+NODE_ENV=production     # Optimized builds
+```
+
+## Useful Resources
+
+- **Vue 3 Docs**: https://vuejs.org/
+- **Electron Docs**: https://www.electronjs.org/docs
+- **mdui Docs**: https://www.mdui.org/
+- **simple-git**: https://github.com/steveukx/git-js
+- **Conventional Commits**: https://www.conventionalcommits.org/
+- **Git Internals**: https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain
+
+---
+
+**Last Updated**: 2025-10-06
+**Document Version**: 1.1
