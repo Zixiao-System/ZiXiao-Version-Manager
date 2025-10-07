@@ -7,9 +7,31 @@
     <div v-else class="split-pane-container">
       <!-- 上部:提交列表 -->
       <div class="commit-list-pane">
-        <div v-if="commits.length > 0" class="commit-list">
+        <!-- 搜索栏 -->
+        <div class="search-bar">
+          <mdui-text-field
+            v-model="searchQuery"
+            placeholder="搜索提交 (消息、作者、Hash)..."
+            icon="search"
+            clearable
+            @input="handleSearch"
+            style="width: 100%;"
+          ></mdui-text-field>
+          <mdui-button-group v-if="searchQuery" style="margin-top: 8px;">
+            <mdui-chip
+              v-for="filter in activeFilters"
+              :key="filter"
+              closable
+              @close="removeFilter(filter)"
+            >
+              {{ getFilterLabel(filter) }}
+            </mdui-chip>
+          </mdui-button-group>
+        </div>
+
+        <div v-if="filteredCommits.length > 0" class="commit-list">
           <div
-            v-for="commit in commits"
+            v-for="commit in filteredCommits"
             :key="commit.hash"
             :class="['commit-item', { selected: selectedCommit?.hash === commit.hash }]"
             @click="selectCommit(commit)"
@@ -95,12 +117,44 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { snackbar } from 'mdui'
 
 const loading = ref(false)
 const commits = ref([])
 const selectedCommit = ref(null)
+const searchQuery = ref('')
+const activeFilters = ref([])
+
+// Computed property for filtered commits
+const filteredCommits = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return commits.value
+  }
+
+  const query = searchQuery.value.toLowerCase().trim()
+  return commits.value.filter(commit => {
+    return (
+      commit.message.toLowerCase().includes(query) ||
+      commit.author_name.toLowerCase().includes(query) ||
+      commit.author_email.toLowerCase().includes(query) ||
+      commit.hash.toLowerCase().includes(query)
+    )
+  })
+})
+
+const handleSearch = () => {
+  // Optionally add search analytics or debouncing here
+}
+
+const removeFilter = (filter) => {
+  activeFilters.value = activeFilters.value.filter(f => f !== filter)
+}
+
+const getFilterLabel = (filter) => {
+  // This can be expanded for advanced filtering
+  return filter
+}
 
 const loadHistory = async () => {
   const repoPath = localStorage.getItem('repoPath')
@@ -209,6 +263,13 @@ onMounted(() => {
   flex-direction: column;
   border-bottom: 1px solid rgb(var(--mdui-color-outline-variant));
   overflow: hidden;
+}
+
+/* 搜索栏 */
+.search-bar {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgb(var(--mdui-color-outline-variant));
+  background-color: rgb(var(--mdui-color-surface-container-low));
 }
 
 .resizer {

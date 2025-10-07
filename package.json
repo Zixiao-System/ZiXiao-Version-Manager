@@ -81,6 +81,8 @@
   },
   "dependencies": {
     "@mdui/icons": "^1.0.3",
+    "diff2html": "^3.4.52",
+    "highlight.js": "^11.11.1",
     "mdui": "^2.0.0",
     "simple-git": "^3.22.0",
     "vue": "^3.4.0"

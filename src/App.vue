@@ -81,8 +81,10 @@
             clearable
             style="width: 300px;"
           ></mdui-text-field>
-          <!-- 深色模式切换 -->
-          <mdui-button-icon :icon="isDarkMode ? 'light_mode' : 'dark_mode'" @click="toggleDarkMode" title="切换深色模式"></mdui-button-icon>
+          <!-- 主题切换 -->
+          <mdui-button-icon :icon="getThemeIcon(currentTheme)" @click="cycleTheme" :title="getThemeLabel(currentTheme)"></mdui-button-icon>
+          <!-- 设置按钮 -->
+          <mdui-button-icon icon="settings" @click="settingsDialogOpen = true" title="设置"></mdui-button-icon>
         </div>
       </div>
 
@@ -91,21 +93,69 @@
         <component :is="currentComponent" :key="activeMenu" />
       </div>
     </main>
+
+    <!-- 设置对话框 -->
+    <mdui-dialog :open="settingsDialogOpen" @close="settingsDialogOpen = false">
+      <div slot="headline">设置</div>
+      <div slot="description">
+        <div style="padding: 16px 0;">
+          <div class="settings-section">
+            <h4 style="margin: 0 0 12px 0; font-size: 14px; color: rgb(var(--mdui-color-on-surface-variant));">外观</h4>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <mdui-list>
+                <mdui-list-item
+                  v-for="theme in themeOptions"
+                  :key="theme.value"
+                  @click="setTheme(theme.value)"
+                  style="cursor: pointer;"
+                >
+                  <mdui-icon slot="icon" :name="theme.icon"></mdui-icon>
+                  <div>{{ theme.label }}</div>
+                  <mdui-icon
+                    v-if="currentTheme === theme.value"
+                    slot="end-icon"
+                    name="check"
+                    style="color: rgb(var(--mdui-color-primary));"
+                  ></mdui-icon>
+                </mdui-list-item>
+              </mdui-list>
+            </div>
+          </div>
+        </div>
+      </div>
+      <mdui-button slot="action" @click="settingsDialogOpen = false">关闭</mdui-button>
+    </mdui-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { snackbar, setTheme, getTheme } from 'mdui'
+import { snackbar } from 'mdui'
 import RepositorySelector from './components/RepositorySelector.vue'
 import StatusView from './components/StatusView.vue'
 import CommitHistory from './components/CommitHistory.vue'
 import BranchManager from './components/BranchManager.vue'
+import {
+  initTheme as initThemeUtil,
+  toggleTheme,
+  applyTheme,
+  saveTheme as saveThemeUtil,
+  getThemeIcon as getThemeIconUtil,
+  getThemeLabel as getThemeLabelUtil,
+  THEMES
+} from './utils/theme.js'
 
 const activeMenu = ref('repo')
 const currentRepo = ref('')
 const branches = ref([])
-const isDarkMode = ref(false)
+const currentTheme = ref(THEMES.AUTO)
+const settingsDialogOpen = ref(false)
+
+const themeOptions = [
+  { value: THEMES.LIGHT, icon: 'light_mode', label: '浅色模式' },
+  { value: THEMES.DARK, icon: 'dark_mode', label: '深色模式' },
+  { value: THEMES.AUTO, icon: 'brightness_auto', label: '跟随系统' }
+]
 
 const workspaceMenus = [
   { label: '文件状态', value: 'status', icon: 'edit_note' },
@@ -190,30 +240,24 @@ const stashChanges = () => {
   window.dispatchEvent(new CustomEvent('git-stash'))
 }
 
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value
-  const theme = isDarkMode.value ? 'dark' : 'light'
-  setTheme(theme)
-  localStorage.setItem('theme', theme)
-  snackbar({ message: isDarkMode.value ? '已切换到深色模式' : '已切换到浅色模式' })
+const cycleTheme = () => {
+  const newTheme = toggleTheme(currentTheme.value)
+  currentTheme.value = newTheme
+  snackbar({ message: `已切换到${getThemeLabelUtil(newTheme)}` })
 }
 
-const initTheme = () => {
-  // 从 localStorage 读取主题设置
-  const savedTheme = localStorage.getItem('theme')
-  if (savedTheme) {
-    isDarkMode.value = savedTheme === 'dark'
-    setTheme(savedTheme)
-  } else {
-    // 默认跟随系统
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    isDarkMode.value = systemDark
-    setTheme(systemDark ? 'dark' : 'light')
-  }
+const setTheme = (theme) => {
+  currentTheme.value = theme
+  saveThemeUtil(theme)
+  applyTheme(theme)
+  snackbar({ message: `已切换到${getThemeLabelUtil(theme)}` })
 }
+
+const getThemeIcon = (theme) => getThemeIconUtil(theme)
+const getThemeLabel = (theme) => getThemeLabelUtil(theme)
 
 onMounted(() => {
-  initTheme()
+  currentTheme.value = initThemeUtil()
   updateCurrentRepo()
 
   // 监听仓库选择事件

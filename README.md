@@ -7,6 +7,10 @@
   <p>基于 Vue 3 + Electron + mdui 构建</p>
 </div>
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/Zixiao-System/ZiXiao-Version-Manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Zixiao-System/ZiXiao-Version-Manager/actions/workflows/ci.yml)
+[![Release](https://github.com/Zixiao-System/ZiXiao-Version-Manager/actions/workflows/release.yml/badge.svg)](https://github.com/Zixiao-System/ZiXiao-Version-Manager/actions/workflows/release.yml)
+
 ## ✨ 功能特性
 
 ### 核心功能

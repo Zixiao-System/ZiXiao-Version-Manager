@@ -29,15 +29,26 @@
           </mdui-chip>
         </div>
 
+        <!-- 文件搜索栏 -->
+        <div v-if="!isClean" class="file-search-bar">
+          <mdui-text-field
+            v-model="fileSearchQuery"
+            placeholder="搜索文件..."
+            icon="search"
+            clearable
+            style="width: 100%;"
+          ></mdui-text-field>
+        </div>
+
         <!-- 文件列表 -->
         <div class="file-list-content">
           <!-- 未暂存的更改 -->
-          <div class="file-section" v-if="unstagedFiles.length > 0">
+          <div class="file-section" v-if="filteredUnstagedFiles.length > 0">
             <div class="section-header">
               <div class="section-title">
                 <mdui-icon name="edit" style="font-size: 16px;"></mdui-icon>
                 <span>未暂存的更改</span>
-                <span class="count">({{ unstagedFiles.length }})</span>
+                <span class="count">({{ filteredUnstagedFiles.length }})</span>
               </div>
               <div class="section-actions">
                 <mdui-button variant="text" icon="add" @click="stageAll" size="small">全部暂存</mdui-button>
@@ -45,7 +56,7 @@
               </div>
             </div>
             <div
-              v-for="file in unstagedFiles"
+              v-for="file in filteredUnstagedFiles"
               :key="'unstaged-' + file.path"
               :class="['file-item', { selected: selectedFile?.path === file.path && selectedFile?.staged === false }]"
               @click="selectFile(file, false)"
@@ -61,19 +72,19 @@
           </div>
 
           <!-- 已暂存的更改 -->
-          <div class="file-section" v-if="stagedFiles.length > 0">
+          <div class="file-section" v-if="filteredStagedFiles.length > 0">
             <div class="section-header">
               <div class="section-title">
                 <mdui-icon name="check_circle" style="font-size: 16px; color: #4caf50;"></mdui-icon>
                 <span>已暂存的更改</span>
-                <span class="count">({{ stagedFiles.length }})</span>
+                <span class="count">({{ filteredStagedFiles.length }})</span>
               </div>
               <div class="section-actions">
                 <mdui-button variant="text" icon="remove" @click="unstageAll" size="small">取消全部</mdui-button>
               </div>
             </div>
             <div
-              v-for="file in stagedFiles"
+              v-for="file in filteredStagedFiles"
               :key="'staged-' + file"
               :class="['file-item', { selected: selectedFile?.path === file && selectedFile?.staged === true }]"
               @click="selectFile({ path: file, status: 'S' }, true)"
@@ -110,11 +121,11 @@
             </div>
           </div>
           <div class="detail-content">
-            <div class="diff-placeholder">
-              <mdui-icon name="difference" style="font-size: 48px; color: rgb(var(--mdui-color-outline));"></mdui-icon>
-              <p>文件差异视图</p>
-              <p style="font-size: 12px; color: rgb(var(--mdui-color-on-surface-variant));">功能开发中...</p>
-            </div>
+            <DiffViewer
+              :file-path="selectedFile.path"
+              :is-staged="selectedFile.staged"
+              :repo-path="repoPath"
+            />
           </div>
         </div>
 
@@ -195,6 +206,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { snackbar, confirm } from 'mdui'
+import DiffViewer from './DiffViewer.vue'
 
 const loading = ref(false)
 const status = ref(null)
@@ -204,6 +216,7 @@ const stashDialogOpen = ref(false)
 const stashList = ref([])
 const repoPath = ref('')
 const selectedFile = ref(null)
+const fileSearchQuery = ref('')
 
 const isClean = computed(() => {
   if (!status.value) return false
@@ -231,6 +244,26 @@ const unstagedFiles = computed(() => {
 
 const stagedFiles = computed(() => {
   return status.value?.staged || []
+})
+
+const filteredUnstagedFiles = computed(() => {
+  if (!fileSearchQuery.value.trim()) {
+    return unstagedFiles.value
+  }
+  const query = fileSearchQuery.value.toLowerCase().trim()
+  return unstagedFiles.value.filter(file =>
+    file.path.toLowerCase().includes(query)
+  )
+})
+
+const filteredStagedFiles = computed(() => {
+  if (!fileSearchQuery.value.trim()) {
+    return stagedFiles.value
+  }
+  const query = fileSearchQuery.value.toLowerCase().trim()
+  return stagedFiles.value.filter(file =>
+    file.toLowerCase().includes(query)
+  )
 })
 
 const getFileIcon = (status) => {
@@ -510,6 +543,12 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+}
+
+.file-search-bar {
+  padding: 8px 16px;
+  background-color: rgb(var(--mdui-color-surface-container-low));
+  border-bottom: 1px solid rgb(var(--mdui-color-outline-variant));
 }
 
 .branch-info {
