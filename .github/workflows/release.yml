@@ -75,12 +75,13 @@ jobs:
         run: |
           mkdir -p release-files
           # Move all build artifacts to a flat directory
-          # Using a loop to avoid overwriting duplicate files
-          for file in $(find artifacts -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" \)); do
+          # Use find with -print0 and while read to handle spaces in filenames
+          find artifacts -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" \) -print0 | while IFS= read -r -d '' file; do
             filename=$(basename "$file")
             # If file already exists, skip it (avoid duplicate uploads)
             if [ ! -f "release-files/$filename" ]; then
               mv "$file" "release-files/"
+              echo "Moved: $filename"
             else
               echo "Skipping duplicate: $filename"
             fi
