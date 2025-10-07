@@ -19,10 +19,7 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            arch: x64
-            platform: mac
-          - os: macos-latest
-            arch: arm64
+            arch: universal
             platform: mac
           - os: windows-latest
             arch: x64
@@ -71,12 +68,31 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: dist-electron
+          path: artifacts
+          merge-multiple: false
+
+      - name: Organize release files
+        run: |
+          mkdir -p release-files
+          # Move all build artifacts to a flat directory
+          # Using a loop to avoid overwriting duplicate files
+          for file in $(find artifacts -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" \)); do
+            filename=$(basename "$file")
+            # If file already exists, skip it (avoid duplicate uploads)
+            if [ ! -f "release-files/$filename" ]; then
+              mv "$file" "release-files/"
+            else
+              echo "Skipping duplicate: $filename"
+            fi
+          done
+          # List all files for debugging
+          echo "Files to be released:"
+          ls -lh release-files/
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist-electron/**/*
+          files: release-files/*
           draft: false
           prerelease: false
           generate_release_notes: true
