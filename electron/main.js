@@ -402,3 +402,78 @@ ipcMain.handle('git:discard', async (event, repoPath, files) => {
     return { success: false, error: error.message }
   }
 })
+
+// 标签管理 (Tag Management)
+// 获取所有标签
+ipcMain.handle('git:tags', async (event, repoPath) => {
+  try {
+    const git = simpleGit(repoPath)
+    const tags = await git.tags()
+    // 返回可序列化的数据
+    return {
+      success: true,
+      data: {
+        all: tags.all,
+        latest: tags.latest
+      }
+    }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
+// 创建标签
+ipcMain.handle('git:addTag', async (event, repoPath, tagName, message = null) => {
+  try {
+    const git = simpleGit(repoPath)
+    if (message) {
+      // 创建注释标签
+      await git.addAnnotatedTag(tagName, message)
+    } else {
+      // 创建轻量级标签
+      await git.addTag(tagName)
+    }
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
+// 删除标签
+ipcMain.handle('git:deleteTag', async (event, repoPath, tagName) => {
+  try {
+    const git = simpleGit(repoPath)
+    await git.tag(['-d', tagName])
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
+// 推送标签到远程
+ipcMain.handle('git:pushTags', async (event, repoPath, remote = 'origin', tagName = null) => {
+  try {
+    const git = simpleGit(repoPath)
+    if (tagName) {
+      // 推送单个标签
+      await git.pushTags(remote, tagName)
+    } else {
+      // 推送所有标签
+      await git.pushTags(remote)
+    }
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
+// 删除远程标签
+ipcMain.handle('git:deleteRemoteTag', async (event, repoPath, remote, tagName) => {
+  try {
+    const git = simpleGit(repoPath)
+    await git.push(remote, `:refs/tags/${tagName}`)
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})

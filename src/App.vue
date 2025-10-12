@@ -135,6 +135,7 @@ import RepositorySelector from './components/RepositorySelector.vue'
 import StatusView from './components/StatusView.vue'
 import CommitHistory from './components/CommitHistory.vue'
 import BranchManager from './components/BranchManager.vue'
+import TagManager from './components/TagManager.vue'
 import {
   initTheme as initThemeUtil,
   toggleTheme,
@@ -164,14 +165,16 @@ const workspaceMenus = [
 
 const repoMenus = [
   { label: '选择仓库', value: 'repo', icon: 'folder_open' },
-  { label: '分支管理', value: 'branches', icon: 'account_tree' }
+  { label: '分支管理', value: 'branches', icon: 'account_tree' },
+  { label: '标签管理', value: 'tags', icon: 'label' }
 ]
 
 const components = {
   repo: RepositorySelector,
   status: StatusView,
   history: CommitHistory,
-  branches: BranchManager
+  branches: BranchManager,
+  tags: TagManager
 }
 
 const currentComponent = computed(() => components[activeMenu.value])
