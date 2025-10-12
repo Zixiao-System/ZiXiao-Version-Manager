@@ -1,5 +1,70 @@
 # ZiXiao Version Manager - 版本历史
 
+## v1.1.1 (2025-10-12)
+
+### 🎉 Git 功能增强
+
+#### 新增功能
+
+- ✅ **标签管理 (Tag Management)**
+  - 创建轻量级标签和注释标签
+  - 查看所有标签列表
+  - 删除本地标签
+  - 推送单个或所有标签到远程
+  - 删除远程标签
+  - 标签搜索功能
+  - 创建标签时可选自动推送
+  - 完整的 TagManager.vue 组件
+
+- ✅ **远程分支管理 (Remote Branch Management)**
+  - 查看远程分支列表
+  - Fetch 操作（支持 --prune）
+  - 检出远程分支为本地追踪分支
+  - 删除远程分支
+  - 创建新本地分支
+  - 删除本地分支
+  - 分支跟踪配置
+  - 增强的 BranchManager.vue 组件
+
+#### UI/UX 改进
+
+- 🎨 全新的标签管理界面
+- 🌿 改进的分支管理界面，分离本地和远程分支
+- 🔍 标签搜索功能
+- ⚡ 更流畅的分支和标签操作体验
+- 📦 批量操作支持（推送所有标签）
+
+#### 技术改进
+
+- 🏗️ 新增 IPC 处理器：
+  - `git:tags` - 获取标签列表
+  - `git:addTag` - 创建标签
+  - `git:deleteTag` - 删除本地标签
+  - `git:pushTags` - 推送标签
+  - `git:deleteRemoteTag` - 删除远程标签
+  - `git:remoteBranches` - 获取远程分支
+  - `git:fetch` - Fetch 操作
+  - `git:deleteRemoteBranch` - 删除远程分支
+  - `git:trackRemoteBranch` - 设置分支跟踪
+  - `git:checkoutRemoteBranch` - 检出远程分支
+- 📡 改进的 preload API 暴露
+- 🔐 所有操作都有确认对话框保护
+
+#### Bug 修复
+
+- 🐛 修复分支管理中的一些边界情况
+- 🐛 优化错误处理和用户反馈
+
+### 下一步计划
+
+参见 v1.2.0 路线图：
+- 合并冲突解决
+- 文件历史查看
+- Cherry-pick 支持
+- Rebase 支持
+
+---
+
 ## v1.1.0 (2025-10-07)
 
 ### 🎉 核心体验优化
