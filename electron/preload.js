@@ -31,5 +31,11 @@ contextBridge.exposeInMainWorld('gitAPI', {
   addTag: (repoPath, tagName, message) => ipcRenderer.invoke('git:addTag', repoPath, tagName, message),
   deleteTag: (repoPath, tagName) => ipcRenderer.invoke('git:deleteTag', repoPath, tagName),
   pushTags: (repoPath, remote, tagName) => ipcRenderer.invoke('git:pushTags', repoPath, remote, tagName),
-  deleteRemoteTag: (repoPath, remote, tagName) => ipcRenderer.invoke('git:deleteRemoteTag', repoPath, remote, tagName)
+  deleteRemoteTag: (repoPath, remote, tagName) => ipcRenderer.invoke('git:deleteRemoteTag', repoPath, remote, tagName),
+  // Remote branch management
+  getRemoteBranches: (repoPath) => ipcRenderer.invoke('git:remoteBranches', repoPath),
+  fetch: (repoPath, remote, options) => ipcRenderer.invoke('git:fetch', repoPath, remote, options),
+  deleteRemoteBranch: (repoPath, remote, branchName) => ipcRenderer.invoke('git:deleteRemoteBranch', repoPath, remote, branchName),
+  trackRemoteBranch: (repoPath, localBranch, remoteBranch) => ipcRenderer.invoke('git:trackRemoteBranch', repoPath, localBranch, remoteBranch),
+  checkoutRemoteBranch: (repoPath, remoteBranch, localBranch) => ipcRenderer.invoke('git:checkoutRemoteBranch', repoPath, remoteBranch, localBranch)
 })

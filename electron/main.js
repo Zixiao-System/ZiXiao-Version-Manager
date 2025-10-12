@@ -477,3 +477,71 @@ ipcMain.handle('git:deleteRemoteTag', async (event, repoPath, remote, tagName) =
     return { success: false, error: error.message }
   }
 })
+
+// 远程分支管理 (Remote Branch Management)
+// 获取远程分支列表
+ipcMain.handle('git:remoteBranches', async (event, repoPath) => {
+  try {
+    const git = simpleGit(repoPath)
+    const branches = await git.branch(['-r'])
+    // 返回可序列化的数据
+    return {
+      success: true,
+      data: {
+        all: branches.all,
+        branches: branches.branches
+      }
+    }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
+// Fetch 操作
+ipcMain.handle('git:fetch', async (event, repoPath, remote = 'origin', options = {}) => {
+  try {
+    const git = simpleGit(repoPath)
+    const args = []
+    if (options.prune) args.push('--prune')
+    if (options.all) args.push('--all')
+
+    await git.fetch(remote, ...args)
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
+// 删除远程分支
+ipcMain.handle('git:deleteRemoteBranch', async (event, repoPath, remote, branchName) => {
+  try {
+    const git = simpleGit(repoPath)
+    await git.push(remote, `:${branchName}`)
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
+// 跟踪远程分支
+ipcMain.handle('git:trackRemoteBranch', async (event, repoPath, localBranch, remoteBranch) => {
+  try {
+    const git = simpleGit(repoPath)
+    await git.branch(['--set-upstream-to', remoteBranch, localBranch])
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
+// Checkout 远程分支（创建本地追踪分支）
+ipcMain.handle('git:checkoutRemoteBranch', async (event, repoPath, remoteBranch, localBranch) => {
+  try {
+    const git = simpleGit(repoPath)
+    await git.checkoutBranch(localBranch, remoteBranch)
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
