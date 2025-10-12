@@ -2,7 +2,9 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
   selectFolder: () => ipcRenderer.invoke('dialog:selectFolder'),
-  onMenuSelectRepo: (callback) => ipcRenderer.on('menu:select-repo', callback)
+  onMenuSelectRepo: (callback) => ipcRenderer.on('menu:select-repo', callback),
+  getAppVersion: () => ipcRenderer.invoke('app:getVersion'),
+  openExternal: (url) => ipcRenderer.invoke('app:openExternal')
 })
 
 contextBridge.exposeInMainWorld('gitAPI', {

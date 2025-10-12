@@ -125,12 +125,47 @@
       </div>
       <mdui-button slot="action" @click="settingsDialogOpen = false">关闭</mdui-button>
     </mdui-dialog>
+
+    <!-- 更新对话框 -->
+    <mdui-dialog :open="updateDialogOpen" @close="updateDialogOpen = false">
+      <div slot="headline">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <mdui-icon name="system_update" style="color: rgb(var(--mdui-color-primary));"></mdui-icon>
+          <span>发现新版本</span>
+        </div>
+      </div>
+      <div slot="description" v-if="updateInfo">
+        <div style="padding: 16px 0;">
+          <div style="margin-bottom: 16px;">
+            <div style="font-size: 14px; color: rgb(var(--mdui-color-on-surface-variant)); margin-bottom: 8px;">
+              当前版本: {{ updateInfo.currentVersion }}
+            </div>
+            <div style="font-size: 16px; font-weight: 500; color: rgb(var(--mdui-color-primary));">
+              最新版本: {{ updateInfo.version }}
+            </div>
+          </div>
+
+          <div v-if="updateInfo.name" style="font-size: 15px; font-weight: 500; margin-bottom: 12px;">
+            {{ updateInfo.name }}
+          </div>
+
+          <div v-if="updateInfo.body" style="font-size: 13px; color: rgb(var(--mdui-color-on-surface-variant)); max-height: 200px; overflow-y: auto; padding: 12px; background-color: rgb(var(--mdui-color-surface-container)); border-radius: 8px; white-space: pre-wrap;">{{ updateInfo.body }}</div>
+
+          <div style="margin-top: 12px; font-size: 12px; color: rgb(var(--mdui-color-on-surface-variant));">
+            发布时间: {{ new Date(updateInfo.publishedAt).toLocaleDateString('zh-CN') }}
+          </div>
+        </div>
+      </div>
+      <mdui-button slot="action" variant="text" @click="skipThisVersion">跳过此版本</mdui-button>
+      <mdui-button slot="action" variant="text" @click="updateDialogOpen = false">稍后提醒</mdui-button>
+      <mdui-button slot="action" variant="tonal" @click="downloadUpdate">立即下载</mdui-button>
+    </mdui-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { snackbar } from 'mdui'
+import { snackbar, confirm } from 'mdui'
 import RepositorySelector from './components/RepositorySelector.vue'
 import StatusView from './components/StatusView.vue'
 import CommitHistory from './components/CommitHistory.vue'
@@ -145,12 +180,19 @@ import {
   getThemeLabel as getThemeLabelUtil,
   THEMES
 } from './utils/theme.js'
+import {
+  autoCheckForUpdates,
+  skipVersion,
+  getPlatformAsset
+} from './utils/updater.js'
 
 const activeMenu = ref('repo')
 const currentRepo = ref('')
 const branches = ref([])
 const currentTheme = ref(THEMES.AUTO)
 const settingsDialogOpen = ref(false)
+const updateDialogOpen = ref(false)
+const updateInfo = ref(null)
 
 const themeOptions = [
   { value: THEMES.LIGHT, icon: 'light_mode', label: '浅色模式' },
@@ -259,9 +301,49 @@ const setTheme = (theme) => {
 const getThemeIcon = (theme) => getThemeIconUtil(theme)
 const getThemeLabel = (theme) => getThemeLabelUtil(theme)
 
+const checkForUpdates = async () => {
+  try {
+    const update = await autoCheckForUpdates()
+    if (update) {
+      updateInfo.value = update
+      updateDialogOpen.value = true
+    }
+  } catch (error) {
+    console.error('Failed to check for updates:', error)
+  }
+}
+
+const downloadUpdate = async () => {
+  if (!updateInfo.value) return
+
+  const asset = getPlatformAsset(updateInfo.value.assets)
+  if (asset) {
+    try {
+      await window.electronAPI.openExternal(asset.downloadUrl)
+      updateDialogOpen.value = false
+    } catch (error) {
+      snackbar({ message: `无法打开下载链接: ${error.message}`, closeable: true })
+    }
+  } else {
+    await window.electronAPI.openExternal(updateInfo.value.htmlUrl)
+    updateDialogOpen.value = false
+  }
+}
+
+const skipThisVersion = () => {
+  if (updateInfo.value) {
+    skipVersion(updateInfo.value.version)
+    snackbar({ message: '已跳过此版本' })
+    updateDialogOpen.value = false
+  }
+}
+
 onMounted(() => {
   currentTheme.value = initThemeUtil()
   updateCurrentRepo()
+
+  // Check for updates
+  checkForUpdates()
 
   // 监听仓库选择事件
   window.addEventListener('repo-selected', () => {

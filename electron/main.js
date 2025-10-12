@@ -545,3 +545,20 @@ ipcMain.handle('git:checkoutRemoteBranch', async (event, repoPath, remoteBranch,
   }
 })
 
+// 应用信息 (App Info)
+// 获取应用版本
+ipcMain.handle('app:getVersion', () => {
+  return app.getVersion()
+})
+
+// 打开外部链接
+ipcMain.handle('app:openExternal', async (event, url) => {
+  try {
+    const { shell } = require('electron')
+    await shell.openExternal(url)
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
