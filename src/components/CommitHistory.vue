@@ -29,27 +29,31 @@
           </mdui-button-group>
         </div>
 
-        <div v-if="filteredCommits.length > 0" class="commit-list">
-          <div
-            v-for="commit in filteredCommits"
-            :key="commit.hash"
-            :class="['commit-item', { selected: selectedCommit?.hash === commit.hash }]"
-            @click="selectCommit(commit)"
-          >
-            <div class="commit-graph">
-              <div class="commit-dot"></div>
-              <div class="commit-line"></div>
-            </div>
-            <div class="commit-info">
-              <div class="commit-message">{{ commit.message }}</div>
-              <div class="commit-meta">
-                <mdui-icon name="person" style="font-size: 14px;"></mdui-icon>
-                <span>{{ commit.author_name }}</span>
-                <span class="separator">·</span>
-                <mdui-icon name="schedule" style="font-size: 14px;"></mdui-icon>
-                <span>{{ formatDate(commit.date) }}</span>
-                <span class="separator">·</span>
-                <span class="commit-hash">{{ commit.hash.substring(0, 7) }}</span>
+        <div v-if="filteredCommits.length > 0" class="commit-list" ref="scrollContainer" @scroll="handleScroll">
+          <div class="virtual-scroll-container" :style="{ height: totalHeight + 'px' }">
+            <div class="virtual-scroll-content" :style="{ transform: `translateY(${offsetY}px)` }">
+              <div
+                v-for="commit in visibleCommits"
+                :key="commit.hash"
+                :class="['commit-item', { selected: selectedCommit?.hash === commit.hash }]"
+                @click="selectCommit(commit)"
+              >
+                <div class="commit-graph">
+                  <div class="commit-dot"></div>
+                  <div class="commit-line"></div>
+                </div>
+                <div class="commit-info">
+                  <div class="commit-message">{{ commit.message }}</div>
+                  <div class="commit-meta">
+                    <mdui-icon name="person" style="font-size: 14px;"></mdui-icon>
+                    <span>{{ commit.author_name }}</span>
+                    <span class="separator">·</span>
+                    <mdui-icon name="schedule" style="font-size: 14px;"></mdui-icon>
+                    <span>{{ formatDate(commit.date) }}</span>
+                    <span class="separator">·</span>
+                    <span class="commit-hash">{{ commit.hash.substring(0, 7) }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -117,7 +121,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { snackbar } from 'mdui'
 
 const loading = ref(false)
@@ -125,6 +129,12 @@ const commits = ref([])
 const selectedCommit = ref(null)
 const searchQuery = ref('')
 const activeFilters = ref([])
+const scrollContainer = ref(null)
+
+// Virtual scrolling configuration
+const ITEM_HEIGHT = 70 // Estimated height of each commit item
+const BUFFER_SIZE = 5 // Number of extra items to render above and below viewport
+const scrollTop = ref(0)
 
 // Computed property for filtered commits
 const filteredCommits = computed(() => {
@@ -141,6 +151,50 @@ const filteredCommits = computed(() => {
       commit.hash.toLowerCase().includes(query)
     )
   })
+})
+
+// Virtual scrolling computed properties
+const totalHeight = computed(() => {
+  return filteredCommits.value.length * ITEM_HEIGHT
+})
+
+const visibleRange = computed(() => {
+  if (!scrollContainer.value) {
+    return { start: 0, end: 20 }
+  }
+
+  const containerHeight = scrollContainer.value.clientHeight || 500
+  const visibleCount = Math.ceil(containerHeight / ITEM_HEIGHT)
+
+  const start = Math.floor(scrollTop.value / ITEM_HEIGHT)
+  const end = start + visibleCount + BUFFER_SIZE
+
+  return {
+    start: Math.max(0, start - BUFFER_SIZE),
+    end: Math.min(filteredCommits.value.length, end)
+  }
+})
+
+const visibleCommits = computed(() => {
+  const { start, end } = visibleRange.value
+  return filteredCommits.value.slice(start, end)
+})
+
+const offsetY = computed(() => {
+  return visibleRange.value.start * ITEM_HEIGHT
+})
+
+// Scroll handler
+const handleScroll = (event) => {
+  scrollTop.value = event.target.scrollTop
+}
+
+// Reset scroll when commits change
+watch(filteredCommits, () => {
+  if (scrollContainer.value) {
+    scrollContainer.value.scrollTop = 0
+    scrollTop.value = 0
+  }
 })
 
 const handleSearch = () => {
@@ -164,7 +218,7 @@ const loadHistory = async () => {
 
   loading.value = true
   try {
-    const result = await window.gitAPI.log(repoPath, { maxCount: 50 })
+    const result = await window.gitAPI.log(repoPath, { maxCount: 500 })
     if (result.success) {
       commits.value = result.data.all
       // 自动选择第一个提交
@@ -294,7 +348,21 @@ onMounted(() => {
 .commit-list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 0;
+  position: relative;
+}
+
+.virtual-scroll-container {
+  position: relative;
+  width: 100%;
+}
+
+.virtual-scroll-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  will-change: transform;
 }
 
 .commit-item {
