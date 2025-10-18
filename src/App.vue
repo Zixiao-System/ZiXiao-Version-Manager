@@ -83,6 +83,8 @@
           ></mdui-text-field>
           <!-- 主题切换 -->
           <mdui-button-icon :icon="getThemeIcon(currentTheme)" @click="cycleTheme" :title="getThemeLabel(currentTheme)"></mdui-button-icon>
+          <!-- 快捷键帮助 -->
+          <mdui-button-icon icon="keyboard" @click="shortcutsPanelOpen = true" title="键盘快捷键 (Cmd+K / Ctrl+K)"></mdui-button-icon>
           <!-- 设置按钮 -->
           <mdui-button-icon icon="settings" @click="settingsDialogOpen = true" title="设置"></mdui-button-icon>
         </div>
@@ -160,6 +162,9 @@
       <mdui-button slot="action" variant="text" @click="updateDialogOpen = false">稍后提醒</mdui-button>
       <mdui-button slot="action" variant="tonal" @click="downloadUpdate">立即下载</mdui-button>
     </mdui-dialog>
+
+    <!-- 键盘快捷键帮助 -->
+    <KeyboardShortcutsPanel :isOpen="shortcutsPanelOpen" @close="shortcutsPanelOpen = false" />
   </div>
 </template>
 
@@ -171,6 +176,8 @@ import StatusView from './components/StatusView.vue'
 import CommitHistory from './components/CommitHistory.vue'
 import BranchManager from './components/BranchManager.vue'
 import TagManager from './components/TagManager.vue'
+import KeyboardShortcutsPanel from './components/KeyboardShortcutsPanel.vue'
+import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts'
 import {
   initTheme as initThemeUtil,
   toggleTheme,
@@ -191,6 +198,7 @@ const currentRepo = ref('')
 const branches = ref([])
 const currentTheme = ref(THEMES.AUTO)
 const settingsDialogOpen = ref(false)
+const shortcutsPanelOpen = ref(false)
 const updateDialogOpen = ref(false)
 const updateInfo = ref(null)
 
@@ -337,6 +345,36 @@ const skipThisVersion = () => {
     updateDialogOpen.value = false
   }
 }
+
+// Setup keyboard shortcuts
+useKeyboardShortcuts({
+  // Navigation
+  'navigate:status': () => { if (currentRepo.value) activeMenu.value = 'status' },
+  'navigate:history': () => { if (currentRepo.value) activeMenu.value = 'history' },
+  'navigate:branches': () => { if (currentRepo.value) activeMenu.value = 'branches' },
+  'navigate:tags': () => { if (currentRepo.value) activeMenu.value = 'tags' },
+
+  // Actions
+  'refresh': refreshContent,
+  'stage:all': () => window.dispatchEvent(new CustomEvent('stage-all')),
+  'unstage:all': () => window.dispatchEvent(new CustomEvent('unstage-all')),
+  'commit': () => window.dispatchEvent(new CustomEvent('commit-shortcut')),
+  'push': pushChanges,
+  'pull': pullChanges,
+
+  // Repository
+  'repo:open': () => window.electronAPI?.selectFolder?.(),
+  'repo:selector': () => { activeMenu.value = 'repo' },
+
+  // View controls
+  'shortcuts:show': () => { shortcutsPanelOpen.value = true },
+  'dialog:close': () => {
+    shortcutsPanelOpen.value = false
+    settingsDialogOpen.value = false
+    updateDialogOpen.value = false
+  }
+})
+
 
 onMounted(() => {
   currentTheme.value = initThemeUtil()
