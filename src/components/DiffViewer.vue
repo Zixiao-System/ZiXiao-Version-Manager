@@ -78,16 +78,15 @@ const loadDiff = async () => {
   diffHtml.value = ''
 
   try {
-    const options = {}
+    const options = []
 
     if (props.isStaged) {
       // Show diff for staged changes (--cached)
-      options['--cached'] = null
-      options['--'] = props.filePath
-    } else {
-      // Show diff for unstaged changes
-      options['--'] = props.filePath
+      options.push('--cached')
     }
+
+    // Add file path separator and file path
+    options.push('--', props.filePath)
 
     const result = await window.gitAPI.diff(props.repoPath, options)
 

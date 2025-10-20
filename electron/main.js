@@ -276,6 +276,34 @@ ipcMain.handle('git:diff', async (event, repoPath, options = {}) => {
   }
 })
 
+// Get commit details with file changes
+ipcMain.handle('git:showCommit', async (event, repoPath, commitHash) => {
+  try {
+    const git = simpleGit(repoPath)
+
+    // Get file list with status
+    const diffSummary = await git.diffSummary([`${commitHash}^`, commitHash])
+
+    // Get full diff
+    const diff = await git.show([commitHash])
+
+    return {
+      success: true,
+      data: {
+        files: diffSummary.files.map(file => ({
+          path: file.file,
+          changes: file.changes,
+          insertions: file.insertions,
+          deletions: file.deletions
+        })),
+        diff: diff
+      }
+    }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
 // 初始化仓库
 ipcMain.handle('git:init', async (event, repoPath) => {
   try {

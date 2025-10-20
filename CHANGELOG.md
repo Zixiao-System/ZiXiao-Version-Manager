@@ -1,5 +1,39 @@
 # ZiXiao Version Manager - 版本历史
 
+## v1.1.5 (2025-10-20) - Hotfix
+
+### 🐛 Bug 修复
+
+- **修复文件状态视图中的 git diff 错误**
+  - 修正 git diff 命令参数格式错误（`--=filename` -> `-- filename`）
+  - 修复 "invalid option: --=.github/CODEOWNERS" 错误
+  - 将 DiffViewer.vue 中的 options 对象改为数组格式
+  - 正确处理暂存和未暂存文件的 diff 显示
+
+- **实现提交历史中的文件更改列表**
+  - 移除"功能开发中..."占位符，显示实际文件更改
+  - 新增 `git:showCommit` IPC 处理器获取提交详情
+  - 显示每个文件的插入/删除行数统计
+  - 支持文件列表滚动和悬停效果
+  - 添加文件更改数据的加载状态
+
+### 🔧 技术改进
+
+- **后端 (electron/main.js)**
+  - 新增 `git:showCommit` handler，使用 `git.diffSummary()` 和 `git.show()`
+  - 返回文件路径、更改行数、插入/删除统计
+
+- **前端 (preload.js)**
+  - 暴露 `showCommit` API 到渲染进程
+
+- **UI 组件 (CommitHistory.vue)**
+  - 新增文件列表显示区域
+  - 添加加载状态指示器
+  - 实现文件统计的彩色显示（绿色表示添加，红色表示删除）
+  - 添加文件列表样式（悬停效果、滚动条）
+
+---
+
 ## v1.1.4 (2025-10-18)
 
 ### 🎉 全局键盘快捷键系统

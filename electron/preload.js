@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('gitAPI', {
   branches: (repoPath) => ipcRenderer.invoke('git:branches', repoPath),
   checkout: (repoPath, branch) => ipcRenderer.invoke('git:checkout', repoPath, branch),
   diff: (repoPath, options) => ipcRenderer.invoke('git:diff', repoPath, options),
+  showCommit: (repoPath, commitHash) => ipcRenderer.invoke('git:showCommit', repoPath, commitHash),
   init: (repoPath) => ipcRenderer.invoke('git:init', repoPath),
   clone: (url, localPath) => ipcRenderer.invoke('git:clone', url, localPath),
   createBranch: (repoPath, branchName) => ipcRenderer.invoke('git:createBranch', repoPath, branchName),

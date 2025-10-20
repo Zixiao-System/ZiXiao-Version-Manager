@@ -103,10 +103,27 @@
             </div>
             <div class="detail-section">
               <div class="detail-label">文件更改</div>
-              <div class="files-placeholder">
+              <div v-if="loadingFiles" class="files-loading">
+                <mdui-circular-progress style="width: 24px; height: 24px;"></mdui-circular-progress>
+                <span style="margin-left: 8px;">加载文件列表...</span>
+              </div>
+              <div v-else-if="commitFiles.length > 0" class="files-list">
+                <div
+                  v-for="file in commitFiles"
+                  :key="file.path"
+                  class="file-item"
+                >
+                  <mdui-icon name="description" style="font-size: 16px; color: rgb(var(--mdui-color-primary));"></mdui-icon>
+                  <span class="file-path">{{ file.path }}</span>
+                  <div class="file-stats">
+                    <span v-if="file.insertions > 0" class="stat-add">+{{ file.insertions }}</span>
+                    <span v-if="file.deletions > 0" class="stat-del">-{{ file.deletions }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="files-placeholder">
                 <mdui-icon name="folder" style="font-size: 36px; color: rgb(var(--mdui-color-outline));"></mdui-icon>
-                <p>文件更改列表</p>
-                <p style="font-size: 12px; color: rgb(var(--mdui-color-on-surface-variant));">功能开发中...</p>
+                <p>无文件更改</p>
               </div>
             </div>
           </div>
@@ -130,6 +147,8 @@ const selectedCommit = ref(null)
 const searchQuery = ref('')
 const activeFilters = ref([])
 const scrollContainer = ref(null)
+const commitFiles = ref([])
+const loadingFiles = ref(false)
 
 // Virtual scrolling configuration
 const ITEM_HEIGHT = 70 // Estimated height of each commit item
@@ -235,8 +254,37 @@ const loadHistory = async () => {
   }
 }
 
-const selectCommit = (commit) => {
+const selectCommit = async (commit) => {
   selectedCommit.value = commit
+  await loadCommitFiles()
+}
+
+const loadCommitFiles = async () => {
+  if (!selectedCommit.value) {
+    commitFiles.value = []
+    return
+  }
+
+  const repoPath = localStorage.getItem('repoPath')
+  if (!repoPath) {
+    return
+  }
+
+  loadingFiles.value = true
+  try {
+    const result = await window.gitAPI.showCommit(repoPath, selectedCommit.value.hash)
+    if (result.success) {
+      commitFiles.value = result.data.files
+    } else {
+      commitFiles.value = []
+      snackbar({ message: `加载文件失败: ${result.error}`, closeable: true })
+    }
+  } catch (error) {
+    commitFiles.value = []
+    snackbar({ message: `错误: ${error.message}`, closeable: true })
+  } finally {
+    loadingFiles.value = false
+  }
 }
 
 const formatDate = (dateString) => {
@@ -545,6 +593,62 @@ onMounted(() => {
   background-color: rgb(var(--mdui-color-surface-container-low));
   border-radius: 8px;
   color: rgb(var(--mdui-color-on-surface-variant));
+}
+
+.files-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: rgb(var(--mdui-color-on-surface-variant));
+}
+
+.files-list {
+  background-color: rgb(var(--mdui-color-surface-container-low));
+  border-radius: 8px;
+  padding: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.15s;
+}
+
+.file-item:hover {
+  background-color: rgb(var(--mdui-color-surface-container));
+}
+
+.file-item .file-path {
+  flex: 1;
+  font-size: 13px;
+  font-family: monospace;
+  color: rgb(var(--mdui-color-on-surface));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-stats {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.stat-add {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.stat-del {
+  color: #f44336;
+  font-weight: 600;
 }
 
 .detail-empty {
