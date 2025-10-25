@@ -207,6 +207,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { snackbar, confirm } from 'mdui'
 import DiffViewer from './DiffViewer.vue'
+import operationHistory, {
+  createStageOperation,
+  createUnstageOperation,
+  createStageAllOperation,
+  createUnstageAllOperation
+} from '../utils/operationHistory.js'
 
 const loading = ref(false)
 const status = ref(null)
@@ -324,6 +330,8 @@ const loadStatus = async () => {
 const stageFile = async (file) => {
   const result = await window.gitAPI.add(repoPath.value, file)
   if (result.success) {
+    // Record operation for undo
+    operationHistory.push(createStageOperation(repoPath.value, file))
     snackbar({ message: `已暂存: ${file}` })
     loadStatus()
   } else {
@@ -332,8 +340,13 @@ const stageFile = async (file) => {
 }
 
 const stageAll = async () => {
+  // Get list of unstaged files before staging
+  const filesToStage = unstagedFiles.value.map(f => f.path)
+
   const result = await window.gitAPI.add(repoPath.value, '.')
   if (result.success) {
+    // Record operation for undo
+    operationHistory.push(createStageAllOperation(repoPath.value, filesToStage))
     snackbar({ message: '已暂存所有更改' })
     loadStatus()
   } else {
@@ -344,6 +357,8 @@ const stageAll = async () => {
 const unstageFile = async (file) => {
   const result = await window.gitAPI.unstage(repoPath.value, file)
   if (result.success) {
+    // Record operation for undo
+    operationHistory.push(createUnstageOperation(repoPath.value, file))
     snackbar({ message: `已取消暂存: ${file}` })
     loadStatus()
   } else {
@@ -352,8 +367,13 @@ const unstageFile = async (file) => {
 }
 
 const unstageAll = async () => {
-  const result = await window.gitAPI.unstage(repoPath.value, '.')
+  // Get list of staged files before unstaging
+  const filesToUnstage = [...stagedFiles.value]
+
+  const result = await window.gitAPI.reset(repoPath.value)
   if (result.success) {
+    // Record operation for undo
+    operationHistory.push(createUnstageAllOperation(repoPath.value, filesToUnstage))
     snackbar({ message: '已取消全部暂存' })
     loadStatus()
   } else {
@@ -460,6 +480,8 @@ onMounted(() => {
   // 监听事件
   window.addEventListener('repo-selected', loadStatus)
   window.addEventListener('refresh-content', loadStatus)
+  window.addEventListener('operation-undone', loadStatus)
+  window.addEventListener('operation-redone', loadStatus)
   window.addEventListener('git-push', async () => {
     const result = await window.gitAPI.push(repoPath.value)
     if (result.success) {

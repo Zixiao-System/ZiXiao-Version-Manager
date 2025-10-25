@@ -67,6 +67,19 @@
       <div class="toolbar">
         <div class="toolbar-actions">
           <mdui-button-group v-if="currentRepo && activeMenu !== 'repo'">
+            <!-- Undo/Redo buttons -->
+            <mdui-button
+              icon="undo"
+              @click="handleUndo"
+              :disabled="!canUndo"
+              :title="canUndo ? `撤销: ${undoDescription}` : '没有可撤销的操作'"
+            >撤销</mdui-button>
+            <mdui-button
+              icon="redo"
+              @click="handleRedo"
+              :disabled="!canRedo"
+              :title="canRedo ? `重做: ${redoDescription}` : '没有可重做的操作'"
+            >重做</mdui-button>
             <mdui-button icon="refresh" @click="refreshContent">刷新</mdui-button>
             <mdui-button icon="cloud_upload" v-if="activeMenu === 'status'" @click="pushChanges">推送</mdui-button>
             <mdui-button icon="cloud_download" v-if="activeMenu === 'status'" @click="pullChanges">拉取</mdui-button>
@@ -178,6 +191,7 @@ import BranchManager from './components/BranchManager.vue'
 import TagManager from './components/TagManager.vue'
 import KeyboardShortcutsPanel from './components/KeyboardShortcutsPanel.vue'
 import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts'
+import { useUndoRedo } from './composables/useUndoRedo'
 import {
   initTheme as initThemeUtil,
   toggleTheme,
@@ -192,6 +206,9 @@ import {
   skipVersion,
   getPlatformAsset
 } from './utils/updater.js'
+
+// Undo/Redo functionality
+const { undo, redo, canUndo, canRedo, undoDescription, redoDescription } = useUndoRedo()
 
 const activeMenu = ref('repo')
 const currentRepo = ref('')
@@ -281,6 +298,23 @@ const refreshContent = () => {
   window.dispatchEvent(new CustomEvent('refresh-content'))
 }
 
+// Undo/Redo handlers
+const handleUndo = async () => {
+  const success = await undo()
+  if (success) {
+    // Refresh the current view after undo
+    refreshContent()
+  }
+}
+
+const handleRedo = async () => {
+  const success = await redo()
+  if (success) {
+    // Refresh the current view after redo
+    refreshContent()
+  }
+}
+
 const pushChanges = () => {
   window.dispatchEvent(new CustomEvent('git-push'))
 }
@@ -353,6 +387,10 @@ useKeyboardShortcuts({
   'navigate:history': () => { if (currentRepo.value) activeMenu.value = 'history' },
   'navigate:branches': () => { if (currentRepo.value) activeMenu.value = 'branches' },
   'navigate:tags': () => { if (currentRepo.value) activeMenu.value = 'tags' },
+
+  // Undo/Redo
+  'undo': handleUndo,
+  'redo': handleRedo,
 
   // Actions
   'refresh': refreshContent,

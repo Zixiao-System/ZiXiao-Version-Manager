@@ -26,8 +26,11 @@ contextBridge.exposeInMainWorld('gitAPI', {
   stash: (repoPath) => ipcRenderer.invoke('git:stash', repoPath),
   stashPop: (repoPath) => ipcRenderer.invoke('git:stashPop', repoPath),
   stashList: (repoPath) => ipcRenderer.invoke('git:stashList', repoPath),
+  stashApply: (repoPath, stashRef) => ipcRenderer.invoke('git:stashApply', repoPath, stashRef),
+  stashDrop: (repoPath, stashRef) => ipcRenderer.invoke('git:stashDrop', repoPath, stashRef),
   remotes: (repoPath) => ipcRenderer.invoke('git:remotes', repoPath),
   unstage: (repoPath, files) => ipcRenderer.invoke('git:unstage', repoPath, files),
+  reset: (repoPath) => ipcRenderer.invoke('git:reset', repoPath),
   discard: (repoPath, files) => ipcRenderer.invoke('git:discard', repoPath, files),
   // Tag management
   getTags: (repoPath) => ipcRenderer.invoke('git:tags', repoPath),

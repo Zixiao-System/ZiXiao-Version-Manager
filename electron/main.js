@@ -573,6 +573,39 @@ ipcMain.handle('git:checkoutRemoteBranch', async (event, repoPath, remoteBranch,
   }
 })
 
+// Reset (取消暂存所有文件)
+ipcMain.handle('git:reset', async (event, repoPath) => {
+  try {
+    const git = simpleGit(repoPath)
+    await git.reset(['HEAD'])
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
+// Stash Apply (应用暂存)
+ipcMain.handle('git:stashApply', async (event, repoPath, stashRef = 'stash@{0}') => {
+  try {
+    const git = simpleGit(repoPath)
+    await git.stash(['apply', stashRef])
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
+// Stash Drop (删除暂存)
+ipcMain.handle('git:stashDrop', async (event, repoPath, stashRef = 'stash@{0}') => {
+  try {
+    const git = simpleGit(repoPath)
+    await git.stash(['drop', stashRef])
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
 // 应用信息 (App Info)
 // 获取应用版本
 ipcMain.handle('app:getVersion', () => {

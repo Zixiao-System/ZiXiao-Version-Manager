@@ -15,6 +15,10 @@ const defaultShortcuts = {
   'mod+3': { action: 'navigate:branches', description: '打开分支管理' },
   'mod+4': { action: 'navigate:tags', description: '打开标签管理' },
 
+  // Undo/Redo
+  'mod+z': { action: 'undo', description: '撤销操作' },
+  'mod+shift+z': { action: 'redo', description: '重做操作' },
+
   // Common Actions
   'mod+r': { action: 'refresh', description: '刷新当前视图' },
   'mod+s': { action: 'stage:all', description: '暂存所有更改' },
