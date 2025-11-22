@@ -4,7 +4,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectFolder: () => ipcRenderer.invoke('dialog:selectFolder'),
   onMenuSelectRepo: (callback) => ipcRenderer.on('menu:select-repo', callback),
   getAppVersion: () => ipcRenderer.invoke('app:getVersion'),
-  openExternal: (url) => ipcRenderer.invoke('app:openExternal')
+  openExternal: (url) => ipcRenderer.invoke('app:openExternal'),
+  // 进度事件监听
+  onGitProgress: (callback) => {
+    const listener = (event, data) => callback(data)
+    ipcRenderer.on('git:progress', listener)
+    // 返回取消订阅函数
+    return () => ipcRenderer.removeListener('git:progress', listener)
+  }
 })
 
 contextBridge.exposeInMainWorld('gitAPI', {

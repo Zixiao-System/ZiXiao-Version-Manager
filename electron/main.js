@@ -220,8 +220,23 @@ ipcMain.handle('git:commit', async (event, repoPath, message) => {
 
 ipcMain.handle('git:push', async (event, repoPath, remote, branch) => {
   try {
-    const git = simpleGit(repoPath)
+    const git = simpleGit(repoPath, {
+      progress({ method, stage, progress }) {
+        mainWindow.webContents.send('git:progress', {
+          operation: 'push',
+          method,
+          stage,
+          progress
+        })
+      }
+    })
     await git.push(remote, branch)
+    // 发送完成信号
+    mainWindow.webContents.send('git:progress', {
+      operation: 'push',
+      stage: 'complete',
+      progress: 100
+    })
     return { success: true }
   } catch (error) {
     return { success: false, error: error.message }
@@ -230,8 +245,23 @@ ipcMain.handle('git:push', async (event, repoPath, remote, branch) => {
 
 ipcMain.handle('git:pull', async (event, repoPath, remote, branch) => {
   try {
-    const git = simpleGit(repoPath)
+    const git = simpleGit(repoPath, {
+      progress({ method, stage, progress }) {
+        mainWindow.webContents.send('git:progress', {
+          operation: 'pull',
+          method,
+          stage,
+          progress
+        })
+      }
+    })
     await git.pull(remote, branch)
+    // 发送完成信号
+    mainWindow.webContents.send('git:progress', {
+      operation: 'pull',
+      stage: 'complete',
+      progress: 100
+    })
     return { success: true }
   } catch (error) {
     return { success: false, error: error.message }
@@ -315,10 +345,26 @@ ipcMain.handle('git:init', async (event, repoPath) => {
   }
 })
 
-// 克隆仓库
+// 克隆仓库（带进度）
 ipcMain.handle('git:clone', async (event, url, localPath) => {
   try {
-    await simpleGit().clone(url, localPath)
+    const git = simpleGit({
+      progress({ method, stage, progress }) {
+        mainWindow.webContents.send('git:progress', {
+          operation: 'clone',
+          method,
+          stage,
+          progress
+        })
+      }
+    })
+    await git.clone(url, localPath)
+    // 发送完成信号
+    mainWindow.webContents.send('git:progress', {
+      operation: 'clone',
+      stage: 'complete',
+      progress: 100
+    })
     return { success: true }
   } catch (error) {
     return { success: false, error: error.message }
@@ -528,12 +574,27 @@ ipcMain.handle('git:remoteBranches', async (event, repoPath) => {
 // Fetch 操作
 ipcMain.handle('git:fetch', async (event, repoPath, remote = 'origin', options = {}) => {
   try {
-    const git = simpleGit(repoPath)
+    const git = simpleGit(repoPath, {
+      progress({ method, stage, progress }) {
+        mainWindow.webContents.send('git:progress', {
+          operation: 'fetch',
+          method,
+          stage,
+          progress
+        })
+      }
+    })
     const args = []
     if (options.prune) args.push('--prune')
     if (options.all) args.push('--all')
 
     await git.fetch(remote, ...args)
+    // 发送完成信号
+    mainWindow.webContents.send('git:progress', {
+      operation: 'fetch',
+      stage: 'complete',
+      progress: 100
+    })
     return { success: true }
   } catch (error) {
     return { success: false, error: error.message }

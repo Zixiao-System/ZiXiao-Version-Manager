@@ -1,5 +1,16 @@
 <template>
   <div class="branch-manager">
+    <!-- 进度条 -->
+    <div v-if="operationInProgress" class="progress-container">
+      <div class="progress-info">
+        <span>{{ progressMessage }}</span>
+        <span v-if="progressValue > 0">{{ progressValue }}%</span>
+      </div>
+      <mdui-linear-progress
+        :value="progressValue > 0 ? progressValue / 100 : undefined"
+      ></mdui-linear-progress>
+    </div>
+
     <mdui-card variant="outlined">
       <div style="padding: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -121,7 +132,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { snackbar, confirm } from 'mdui'
 
 const loading = ref(false)
@@ -129,6 +140,54 @@ const branches = ref(null)
 const remoteBranches = ref([])
 const createBranchDialogOpen = ref(false)
 const newBranchName = ref('')
+
+// 进度追踪状态
+const operationInProgress = ref(false)
+const progressValue = ref(0)
+const progressMessage = ref('')
+let unsubscribeProgress = null
+
+// 进度阶段的中文翻译
+const stageLabels = {
+  'compressing': '压缩中',
+  'counting': '计算对象中',
+  'receiving': '接收数据中',
+  'resolving': '解析中',
+  'writing': '写入中',
+  'remote': '远程处理中',
+  'complete': '完成'
+}
+
+// 操作名称的中文翻译
+const operationLabels = {
+  'clone': '克隆',
+  'push': '推送',
+  'pull': '拉取',
+  'fetch': '获取'
+}
+
+const setupProgressListener = () => {
+  if (unsubscribeProgress) {
+    unsubscribeProgress()
+  }
+  unsubscribeProgress = window.electronAPI.onGitProgress((data) => {
+    if (['push', 'pull', 'fetch'].includes(data.operation)) {
+      operationInProgress.value = true
+      progressValue.value = data.progress || 0
+      const opLabel = operationLabels[data.operation] || data.operation
+      const stageLabel = stageLabels[data.stage] || data.stage || ''
+      progressMessage.value = `${opLabel}${stageLabel ? ' - ' + stageLabel : ''}`
+
+      if (data.stage === 'complete') {
+        setTimeout(() => {
+          operationInProgress.value = false
+          progressValue.value = 0
+          progressMessage.value = ''
+        }, 500)
+      }
+    }
+  })
+}
 
 const loadAllBranches = async () => {
   await Promise.all([loadLocalBranches(), loadRemoteBranches()])
@@ -346,8 +405,19 @@ const pushChanges = async () => {
 onMounted(() => {
   loadAllBranches()
 
+  // 设置进度监听
+  setupProgressListener()
+
   // 监听刷新事件
   window.addEventListener('refresh-content', loadAllBranches)
+})
+
+onUnmounted(() => {
+  // 清理进度监听
+  if (unsubscribeProgress) {
+    unsubscribeProgress()
+  }
+  window.removeEventListener('refresh-content', loadAllBranches)
 })
 </script>
 
@@ -356,5 +426,21 @@ onMounted(() => {
   max-width: 800px;
   margin: 0 auto;
   padding: 16px;
+}
+
+.progress-container {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: rgb(var(--mdui-color-surface-container));
+  border-radius: 8px;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: rgb(var(--mdui-color-on-surface));
 }
 </style>

@@ -141,14 +141,25 @@
 
     <!-- 加载对话框 -->
     <mdui-dialog :open="loading" style="text-align: center;">
-      <mdui-circular-progress></mdui-circular-progress>
-      <p style="margin-top: 16px;">{{ loadingMessage }}</p>
+      <div v-if="cloning && cloneProgress.inProgress" style="padding: 16px;">
+        <div style="margin-bottom: 16px;">
+          <span>{{ cloneProgress.message }}</span>
+          <span v-if="cloneProgress.value > 0" style="margin-left: 8px;">{{ cloneProgress.value }}%</span>
+        </div>
+        <mdui-linear-progress
+          :value="cloneProgress.value > 0 ? cloneProgress.value / 100 : undefined"
+        ></mdui-linear-progress>
+      </div>
+      <div v-else>
+        <mdui-circular-progress></mdui-circular-progress>
+        <p style="margin-top: 16px;">{{ loadingMessage }}</p>
+      </div>
     </mdui-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { snackbar } from 'mdui'
 
 const localRepoPath = ref('')
@@ -162,6 +173,47 @@ const loading = ref(false)
 const loadingMessage = ref('')
 const cloning = ref(false)
 const recentRepos = ref([])
+
+// 克隆进度状态
+const cloneProgress = reactive({
+  inProgress: false,
+  value: 0,
+  message: ''
+})
+let unsubscribeProgress = null
+
+// 进度阶段的中文翻译
+const stageLabels = {
+  'compressing': '压缩中',
+  'counting': '计算对象中',
+  'receiving': '接收数据中',
+  'resolving': '解析中',
+  'writing': '写入中',
+  'remote': '远程处理中',
+  'complete': '完成'
+}
+
+const setupProgressListener = () => {
+  if (unsubscribeProgress) {
+    unsubscribeProgress()
+  }
+  unsubscribeProgress = window.electronAPI.onGitProgress((data) => {
+    if (data.operation === 'clone') {
+      cloneProgress.inProgress = true
+      cloneProgress.value = data.progress || 0
+      const stageLabel = stageLabels[data.stage] || data.stage || ''
+      cloneProgress.message = `克隆仓库${stageLabel ? ' - ' + stageLabel : ''}`
+
+      if (data.stage === 'complete') {
+        setTimeout(() => {
+          cloneProgress.inProgress = false
+          cloneProgress.value = 0
+          cloneProgress.message = ''
+        }, 500)
+      }
+    }
+  })
+}
 
 const browseFolder = async () => {
   const result = await window.electronAPI.selectFolder()
@@ -347,10 +399,20 @@ onMounted(() => {
     localRepoPath.value = savedPath
   }
 
+  // 设置进度监听
+  setupProgressListener()
+
   // 监听菜单选择仓库事件
   window.electronAPI.onMenuSelectRepo(() => {
     browseFolder()
   })
+})
+
+onUnmounted(() => {
+  // 清理进度监听
+  if (unsubscribeProgress) {
+    unsubscribeProgress()
+  }
 })
 </script>
 
