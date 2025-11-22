@@ -1,5 +1,54 @@
 # ZiXiao Version Manager - 版本历史
 
+## v1.1.7 (2025-11-22)
+
+### 🎉 Git 操作进度指示器
+
+#### 新增功能
+
+- ✅ **网络操作进度条 (Progress Indicators)**
+  - 为 Git 网络操作添加线性进度指示器
+  - 支持以下操作的进度显示：
+    - Clone（克隆仓库）
+    - Push（推送更改）
+    - Pull（拉取更新）
+    - Fetch（获取远程）
+  - 实时显示操作进度百分比
+  - 显示当前操作阶段（中文）：
+    - 压缩中 (compressing)
+    - 计算对象中 (counting)
+    - 接收数据中 (receiving)
+    - 解析中 (resolving)
+    - 写入中 (writing)
+    - 远程处理中 (remote)
+  - 无法获取精确进度时显示不确定进度动画
+  - 操作完成后自动隐藏进度条
+
+#### UI/UX 改进
+
+- 🎨 分支管理页面顶部显示 Push/Pull/Fetch 进度
+- 📥 仓库选择器克隆对话框显示克隆进度
+- 💡 进度条使用 mdui 的 `linear-progress` 组件
+- 🔄 操作完成后短暂延迟隐藏，提供视觉反馈
+
+#### 技术改进
+
+- 🏗️ 主进程使用 `simple-git` 的 progress 选项捕获进度事件
+- 📡 新增 IPC 事件：
+  - `git:progress` - 进度事件转发到渲染进程
+- 🔐 preload.js 新增 `onGitProgress` API
+  - 返回取消订阅函数，支持清理监听器
+- 💾 组件卸载时自动清理事件监听器，避免内存泄漏
+
+#### 受影响的文件
+
+- `electron/main.js` - 添加进度事件发送
+- `electron/preload.js` - 暴露进度监听 API
+- `src/components/BranchManager.vue` - Push/Pull/Fetch 进度 UI
+- `src/components/RepositorySelector.vue` - Clone 进度 UI
+
+---
+
 ## v1.1.6 (2025-10-25)
 
 ### 🎉 撤销/重做系统
