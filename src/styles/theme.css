@@ -43,60 +43,60 @@
   /* 深色模式：韩立风雷翅青色 RGB(32, 76, 99) = #204C63 */
   --mdui-color-background-dark: 32, 76, 99;
 
-  /* 表面色 */
-  --mdui-color-surface-light: 248, 250, 252;
-  --mdui-color-surface-dark: 15, 23, 42;
+  /* 表面色 - 使用相同的背景色系 */
+  --mdui-color-surface-light: 237, 223, 164;
+  --mdui-color-surface-dark: 32, 76, 99;
 
-  --mdui-color-surface-dim-light: 226, 232, 240;
-  --mdui-color-surface-dim-dark: 15, 23, 42;
+  --mdui-color-surface-dim-light: 220, 206, 145;
+  --mdui-color-surface-dim-dark: 25, 60, 79;
 
-  --mdui-color-surface-bright-light: 255, 255, 255;
-  --mdui-color-surface-bright-dark: 51, 65, 85;
+  --mdui-color-surface-bright-light: 250, 240, 200;
+  --mdui-color-surface-bright-dark: 45, 95, 120;
 
-  /* 表面容器 */
-  --mdui-color-surface-container-lowest-light: 255, 255, 255;
-  --mdui-color-surface-container-lowest-dark: 2, 6, 23;
+  /* 表面容器 - 渐变层次 */
+  --mdui-color-surface-container-lowest-light: 255, 250, 220;
+  --mdui-color-surface-container-lowest-dark: 20, 50, 65;
 
-  --mdui-color-surface-container-low-light: 249, 250, 251;
-  --mdui-color-surface-container-low-dark: 30, 41, 59;
+  --mdui-color-surface-container-low-light: 245, 235, 190;
+  --mdui-color-surface-container-low-dark: 28, 65, 85;
 
-  --mdui-color-surface-container-light: 241, 245, 249;
-  --mdui-color-surface-container-dark: 30, 41, 59;
+  --mdui-color-surface-container-light: 240, 230, 180;
+  --mdui-color-surface-container-dark: 35, 70, 90;
 
-  --mdui-color-surface-container-high-light: 226, 232, 240;
-  --mdui-color-surface-container-high-dark: 51, 65, 85;
+  --mdui-color-surface-container-high-light: 230, 220, 170;
+  --mdui-color-surface-container-high-dark: 40, 80, 100;
 
-  --mdui-color-surface-container-highest-light: 203, 213, 225;
-  --mdui-color-surface-container-highest-dark: 71, 85, 105;
+  --mdui-color-surface-container-highest-light: 220, 210, 160;
+  --mdui-color-surface-container-highest-dark: 45, 85, 105;
 
   /* 表面变体 */
-  --mdui-color-surface-variant-light: 226, 232, 240;
-  --mdui-color-surface-variant-dark: 71, 85, 105;
+  --mdui-color-surface-variant-light: 230, 220, 170;
+  --mdui-color-surface-variant-dark: 40, 80, 100;
 
-  /* 表面上的文字 */
-  --mdui-color-on-surface-light: 15, 23, 42;
-  --mdui-color-on-surface-dark: 248, 250, 252;
+  /* 表面上的文字 - 确保对比度 */
+  --mdui-color-on-surface-light: 30, 30, 20;
+  --mdui-color-on-surface-dark: 240, 245, 248;
 
-  --mdui-color-on-surface-variant-light: 71, 85, 105;
-  --mdui-color-on-surface-variant-dark: 203, 213, 225;
+  --mdui-color-on-surface-variant-light: 60, 55, 40;
+  --mdui-color-on-surface-variant-dark: 200, 210, 220;
 
   /* 反转表面 */
-  --mdui-color-inverse-surface-light: 30, 41, 59;
-  --mdui-color-inverse-surface-dark: 226, 232, 240;
+  --mdui-color-inverse-surface-light: 35, 70, 90;
+  --mdui-color-inverse-surface-dark: 230, 220, 170;
 
-  --mdui-color-inverse-on-surface-light: 248, 250, 252;
-  --mdui-color-inverse-on-surface-dark: 15, 23, 42;
+  --mdui-color-inverse-on-surface-light: 245, 240, 210;
+  --mdui-color-inverse-on-surface-dark: 30, 30, 20;
 
   /* 背景上的文字 */
-  --mdui-color-on-background-light: 15, 23, 42;
-  --mdui-color-on-background-dark: 248, 250, 252;
+  --mdui-color-on-background-light: 30, 30, 20;
+  --mdui-color-on-background-dark: 240, 245, 248;
 
-  /* 轮廓 */
-  --mdui-color-outline-light: 148, 163, 184;
-  --mdui-color-outline-dark: 100, 116, 139;
+  /* 轮廓 - 与背景色协调 */
+  --mdui-color-outline-light: 180, 165, 120;
+  --mdui-color-outline-dark: 50, 95, 115;
 
-  --mdui-color-outline-variant-light: 203, 213, 225;
-  --mdui-color-outline-variant-dark: 51, 65, 85;
+  --mdui-color-outline-variant-light: 210, 195, 150;
+  --mdui-color-outline-variant-dark: 40, 80, 95;
 
   /* 表面着色 */
   --mdui-color-surface-tint-color-light: 139, 92, 246;
