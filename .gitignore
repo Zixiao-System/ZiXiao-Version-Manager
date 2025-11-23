@@ -13,3 +13,5 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+/RELEASE_NOTES_v1.2.0.md
+/RELEASE_NOTES_v1.2.0_EN.md

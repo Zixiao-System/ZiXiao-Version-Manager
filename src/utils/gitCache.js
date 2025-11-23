@@ -94,8 +94,9 @@ class GitCache {
     const repoCache = this._getRepoCache(repoPath)
     const key = this._generateKey(operation, ...params)
 
+    // Use JSON serialization for deep clone (safer for Git objects)
     repoCache.set(key, {
-      data: structuredClone(data), // Deep clone to prevent mutation
+      data: JSON.parse(JSON.stringify(data)),
       timestamp: Date.now()
     })
   }
