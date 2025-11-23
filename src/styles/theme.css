@@ -37,9 +37,11 @@
   --mdui-color-on-secondary-container-light: 44, 16, 0;
   --mdui-color-on-secondary-container-dark: 254, 249, 195;
 
-  /* 云雾白/深空黑 - 背景色 */
-  --mdui-color-background-light: 248, 250, 252; /* #F8FAFC */
-  --mdui-color-background-dark: 15, 23, 42; /* #0F172A */
+  /* 修仙风格背景色 - 灵感来自《凡人修仙传》 */
+  /* 浅色模式：闪电色 RGB(237, 223, 164) = #EDDFA4 */
+  --mdui-color-background-light: 237, 223, 164;
+  /* 深色模式：韩立风雷翅青色 RGB(32, 76, 99) = #204C63 */
+  --mdui-color-background-dark: 32, 76, 99;
 
   /* 表面色 */
   --mdui-color-surface-light: 248, 250, 252;
