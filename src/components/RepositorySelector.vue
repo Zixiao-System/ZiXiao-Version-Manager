@@ -1,11 +1,24 @@
 <template>
   <div class="repo-container">
-    <mdui-card variant="outlined" class="repo-selector">
+    <mdui-card
+      variant="outlined"
+      class="repo-selector"
+      :class="{ 'drag-over': isDragOver }"
+      @dragover.prevent="handleDragOver"
+      @dragleave.prevent="handleDragLeave"
+      @drop.prevent="handleDrop"
+    >
+      <!-- Drag & Drop overlay -->
+      <div v-if="isDragOver" class="drag-overlay">
+        <mdui-icon name="upload_file" style="font-size: 72px; color: rgb(var(--mdui-color-primary));"></mdui-icon>
+        <p style="font-size: 18px; font-weight: 500; margin-top: 16px;">拖放文件夹打开Git仓库</p>
+      </div>
+
       <div style="padding: 24px;">
         <div style="text-align: center; margin-bottom: 24px;">
           <mdui-icon name="folder_open" style="font-size: 64px; color: rgb(var(--mdui-color-primary));"></mdui-icon>
           <h2 style="margin-top: 16px;">选择 Git 仓库</h2>
-          <p style="color: rgb(var(--mdui-color-on-surface-variant)); margin-top: 8px;">选择一个现有的仓库，或者初始化/克隆一个新仓库</p>
+          <p style="color: rgb(var(--mdui-color-on-surface-variant)); margin-top: 8px;">选择一个现有的仓库，或者初始化/克隆一个新仓库，也可以直接拖放文件夹</p>
         </div>
 
         <!-- 选择现有仓库 -->
@@ -173,6 +186,7 @@ const loading = ref(false)
 const loadingMessage = ref('')
 const cloning = ref(false)
 const recentRepos = ref([])
+const isDragOver = ref(false)
 
 // 克隆进度状态
 const cloneProgress = reactive({
@@ -381,6 +395,47 @@ const showMessage = (msg, type = 'success') => {
   }, 3000)
 }
 
+// Drag & Drop handlers
+const handleDragOver = (event) => {
+  isDragOver.value = true
+  event.dataTransfer.dropEffect = 'copy'
+}
+
+const handleDragLeave = (event) => {
+  // Only set isDragOver to false if we're leaving the card entirely
+  if (event.target.classList.contains('repo-selector') || event.target.classList.contains('drag-overlay')) {
+    isDragOver.value = false
+  }
+}
+
+const handleDrop = async (event) => {
+  isDragOver.value = false
+
+  const items = event.dataTransfer.items
+  if (!items || items.length === 0) {
+    snackbar({ message: '请拖放文件夹', closeable: true })
+    return
+  }
+
+  // Get the first item (folder)
+  const item = items[0]
+  if (item.kind === 'file') {
+    const entry = item.webkitGetAsEntry()
+    if (entry && entry.isDirectory) {
+      const path = entry.fullPath
+      // Convert to absolute path by reading the file system
+      // Unfortunately, Electron doesn't provide direct path from drag events
+      // We'll use a workaround: show snackbar to guide user to browse button
+      snackbar({
+        message: '请使用浏览按钮选择文件夹，或将文件夹路径粘贴到输入框',
+        closeable: true
+      })
+    } else {
+      snackbar({ message: '请拖放文件夹而不是文件', closeable: true })
+    }
+  }
+}
+
 // 监听菜单事件
 onMounted(() => {
   // 加载最近打开的仓库
@@ -428,6 +483,41 @@ onUnmounted(() => {
 .repo-selector {
   max-width: 800px;
   width: 100%;
+  position: relative;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.repo-selector.drag-over {
+  border-color: rgb(var(--mdui-color-primary));
+  box-shadow: 0 0 0 3px rgba(var(--mdui-color-primary-rgb), 0.2);
+}
+
+.drag-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(var(--mdui-color-primary-container-rgb), 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 h2 {

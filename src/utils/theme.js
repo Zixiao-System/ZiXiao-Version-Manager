@@ -28,9 +28,13 @@ export function applyTheme(theme) {
   if (actualTheme === THEMES.DARK) {
     document.documentElement.classList.add('mdui-theme-dark')
     document.documentElement.classList.remove('mdui-theme-light')
+    // 风雷翅青色 - Han Li's Wind Thunder Wings cyan
+    document.documentElement.style.setProperty('--custom-bg-color', '#204C63')
   } else {
     document.documentElement.classList.add('mdui-theme-light')
     document.documentElement.classList.remove('mdui-theme-dark')
+    // 闪电色 - Lightning color
+    document.documentElement.style.setProperty('--custom-bg-color', '#EDDFA4')
   }
 }
 

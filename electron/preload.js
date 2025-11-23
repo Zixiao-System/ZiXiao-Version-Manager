@@ -50,5 +50,7 @@ contextBridge.exposeInMainWorld('gitAPI', {
   fetch: (repoPath, remote, options) => ipcRenderer.invoke('git:fetch', repoPath, remote, options),
   deleteRemoteBranch: (repoPath, remote, branchName) => ipcRenderer.invoke('git:deleteRemoteBranch', repoPath, remote, branchName),
   trackRemoteBranch: (repoPath, localBranch, remoteBranch) => ipcRenderer.invoke('git:trackRemoteBranch', repoPath, localBranch, remoteBranch),
-  checkoutRemoteBranch: (repoPath, remoteBranch, localBranch) => ipcRenderer.invoke('git:checkoutRemoteBranch', repoPath, remoteBranch, localBranch)
+  checkoutRemoteBranch: (repoPath, remoteBranch, localBranch) => ipcRenderer.invoke('git:checkoutRemoteBranch', repoPath, remoteBranch, localBranch),
+  // Advanced Git operations
+  cherryPick: (repoPath, commitHash) => ipcRenderer.invoke('git:cherryPick', repoPath, commitHash)
 })

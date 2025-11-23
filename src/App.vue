@@ -449,7 +449,7 @@ onMounted(() => {
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background-color: rgb(var(--mdui-color-background));
+  background-color: var(--custom-bg-color, rgb(var(--mdui-color-background)));
 }
 
 /* 左侧边栏 */

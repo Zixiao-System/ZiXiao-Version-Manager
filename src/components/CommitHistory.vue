@@ -57,6 +57,16 @@
               </div>
             </div>
           </div>
+          <!-- Loading more indicator -->
+          <div v-if="loadingMore" class="loading-more">
+            <mdui-circular-progress style="width: 24px; height: 24px;"></mdui-circular-progress>
+            <span style="margin-left: 8px;">加载更多提交...</span>
+          </div>
+          <!-- End of commits indicator -->
+          <div v-if="!hasMore && !searchQuery" class="end-of-commits">
+            <mdui-icon name="check_circle" style="font-size: 18px;"></mdui-icon>
+            <span style="margin-left: 6px;">已加载全部 {{ commits.length }} 条提交</span>
+          </div>
         </div>
         <div v-else class="empty-list">
           <mdui-icon name="history" style="font-size: 64px; color: rgb(var(--mdui-color-outline));"></mdui-icon>
@@ -140,8 +150,10 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { snackbar } from 'mdui'
+import gitCache, { cacheHelpers, TTL } from '../utils/gitCache.js'
 
 const loading = ref(false)
+const loadingMore = ref(false)
 const commits = ref([])
 const selectedCommit = ref(null)
 const searchQuery = ref('')
@@ -149,6 +161,12 @@ const activeFilters = ref([])
 const scrollContainer = ref(null)
 const commitFiles = ref([])
 const loadingFiles = ref(false)
+
+// Incremental loading configuration
+const INITIAL_LOAD_COUNT = 100
+const LOAD_MORE_COUNT = 50
+const hasMore = ref(true)
+let lastCommitHash = null
 
 // Virtual scrolling configuration
 const ITEM_HEIGHT = 70 // Estimated height of each commit item
@@ -206,6 +224,14 @@ const offsetY = computed(() => {
 // Scroll handler
 const handleScroll = (event) => {
   scrollTop.value = event.target.scrollTop
+
+  // Check if scrolled near bottom for infinite scroll
+  const { scrollTop: st, scrollHeight, clientHeight } = event.target
+  const scrollThreshold = 200 // pixels from bottom
+
+  if (scrollHeight - (st + clientHeight) < scrollThreshold && !loadingMore.value && hasMore.value && !searchQuery.value) {
+    loadMoreCommits()
+  }
 }
 
 // Reset scroll when commits change
@@ -237,11 +263,31 @@ const loadHistory = async () => {
 
   loading.value = true
   try {
-    const result = await window.gitAPI.log(repoPath, { maxCount: 500 })
+    // Try cache first (with 5min TTL)
+    const cached = gitCache.get(repoPath, 'commits', [], TTL.COMMITS)
+    if (cached) {
+      commits.value = cached
+      hasMore.value = cached.length >= INITIAL_LOAD_COUNT
+      if (commits.value.length > 0) {
+        lastCommitHash = commits.value[commits.value.length - 1].hash
+        selectedCommit.value = commits.value[0]
+      }
+      loading.value = false
+      return
+    }
+
+    // Load initial commits
+    const result = await window.gitAPI.log(repoPath, { maxCount: INITIAL_LOAD_COUNT })
     if (result.success) {
       commits.value = result.data.all
-      // 自动选择第一个提交
+      hasMore.value = result.data.all.length >= INITIAL_LOAD_COUNT
+
+      // Cache the commits
+      gitCache.set(repoPath, 'commits', commits.value)
+
+      // Store last commit hash for incremental loading
       if (commits.value.length > 0) {
+        lastCommitHash = commits.value[commits.value.length - 1].hash
         selectedCommit.value = commits.value[0]
       }
     } else {
@@ -251,6 +297,47 @@ const loadHistory = async () => {
     snackbar({ message: `错误: ${error.message}`, closeable: true })
   } finally {
     loading.value = false
+  }
+}
+
+const loadMoreCommits = async () => {
+  const repoPath = localStorage.getItem('repoPath')
+  if (!repoPath || !hasMore.value || loadingMore.value) {
+    return
+  }
+
+  loadingMore.value = true
+  try {
+    // Load more commits starting from last hash
+    const result = await window.gitAPI.log(repoPath, {
+      maxCount: LOAD_MORE_COUNT,
+      from: lastCommitHash
+    })
+
+    if (result.success) {
+      const newCommits = result.data.all
+      // Remove first commit as it's the same as lastCommitHash
+      if (newCommits.length > 0 && newCommits[0].hash === lastCommitHash) {
+        newCommits.shift()
+      }
+
+      if (newCommits.length > 0) {
+        commits.value = [...commits.value, ...newCommits]
+        lastCommitHash = newCommits[newCommits.length - 1].hash
+
+        // Update cache
+        gitCache.set(repoPath, 'commits', commits.value)
+      }
+
+      // Check if there are more commits
+      hasMore.value = newCommits.length >= LOAD_MORE_COUNT - 1
+    } else {
+      snackbar({ message: `加载更多失败: ${result.error}`, closeable: true })
+    }
+  } catch (error) {
+    snackbar({ message: `错误: ${error.message}`, closeable: true })
+  } finally {
+    loadingMore.value = false
   }
 }
 
@@ -504,6 +591,22 @@ onMounted(() => {
   justify-content: center;
   height: 100%;
   color: rgb(var(--mdui-color-on-surface-variant));
+}
+
+.loading-more,
+.end-of-commits {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  color: rgb(var(--mdui-color-on-surface-variant));
+  font-size: 13px;
+  background-color: rgb(var(--mdui-color-surface-container-lowest));
+  border-top: 1px solid rgb(var(--mdui-color-outline-variant));
+}
+
+.end-of-commits {
+  color: rgb(var(--mdui-color-tertiary));
 }
 
 /* 详情面板 */

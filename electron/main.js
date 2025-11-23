@@ -667,6 +667,17 @@ ipcMain.handle('git:stashDrop', async (event, repoPath, stashRef = 'stash@{0}') 
   }
 })
 
+// Cherry-pick (应用指定提交)
+ipcMain.handle('git:cherryPick', async (event, repoPath, commitHash) => {
+  try {
+    const git = simpleGit(repoPath)
+    await git.raw(['cherry-pick', commitHash])
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
 // 应用信息 (App Info)
 // 获取应用版本
 ipcMain.handle('app:getVersion', () => {
