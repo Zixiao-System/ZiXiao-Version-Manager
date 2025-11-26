@@ -11,6 +11,8 @@
 [![CI](https://github.com/Zixiao-System/ZiXiao-Version-Manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Zixiao-System/ZiXiao-Version-Manager/actions/workflows/ci.yml)
 [![Release](https://github.com/Zixiao-System/ZiXiao-Version-Manager/actions/workflows/release.yml/badge.svg)](https://github.com/Zixiao-System/ZiXiao-Version-Manager/actions/workflows/release.yml)
 
+
+
 ## ✨ 功能特性
 
 ### 核心功能
@@ -67,6 +69,8 @@
 | mdui | 2.x | Material Design UI 组件库 |
 | Vite | 5+ | 构建工具 |
 | simple-git | 3.22+ | Git 操作库 |
+
+⚠️ Windows users may need to install windows-build-tools first.
 
 ## 📦 安装依赖
 
